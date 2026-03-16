@@ -1,0 +1,57 @@
+# --------------------------------------------------------------------
+# Angular recommended ignore patterns
+# --------------------------------------------------------------------
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node dependencies
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/
+
+# Angular cache
+/.angular/cache
+
+# CSS preprocessors
+.sass-cache/
+
+# Misc
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# OS / system files
+.DS_Store
+Thumbs.db
+
+# --------------------------------------------------------------------
+# OPTIONAL (recommended)
+# --------------------------------------------------------------------
+
+# Temporary environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Angular environment files (only if they contain secrets)
+src/environments/environment.ts
+src/environments/environment.prod.ts

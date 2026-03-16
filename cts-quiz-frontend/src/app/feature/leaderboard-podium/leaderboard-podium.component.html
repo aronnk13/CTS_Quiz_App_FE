@@ -1,0 +1,75 @@
+<div class="podium-container">
+  <div class="celebration-header" *ngIf="showCelebration()">
+    <h1 class="title">🎉 Final Results 🎉</h1>
+    <p class="subtitle">{{ podium()?.quizTitle }}</p>
+  </div>
+
+  <div class="loading" *ngIf="isLoading()">
+    <div class="spinner" role="status" aria-hidden="true"></div>
+    <p class="loading-text">Preparing podium...</p>
+  </div>
+
+  <div class="podium-display" *ngIf="!isLoading() && podium()">
+    <div class="podium-grid" role="list" aria-label="Podium standings">
+      <!-- Second Place -->
+      <div class="podium-stand second" *ngIf="podium()?.secondPlace" [@podiumReveal]>
+        <div class="trophy">🥈</div>
+        <div class="participant-card second" role="listitem">
+          <div class="rank-badge">2nd</div>
+          <div class="avatar">
+            <span class="avatar-emoji">🧑</span>
+          </div>
+          <h3 class="name">{{ podium()?.secondPlace?.participantName }}</h3>
+          <div class="score">{{ podium()?.secondPlace?.score }} pts</div>
+          <div class="stats">
+            <div class="stat">✅ {{ getAccuracy(podium()?.secondPlace ?? null) }}%</div>
+            <div class="stat">⚡ {{ formatTime(podium()?.secondPlace?.averageSpeedMs || 0) }}</div>
+          </div>
+        </div>
+        <div class="stand" [style.height]="getHeight(2)"></div>
+      </div>
+
+      <!-- First Place (Champion) -->
+      <div class="podium-stand champion" *ngIf="podium()?.firstPlace" [@podiumReveal]>
+        <div class="trophy champion-trophy">🏆</div>
+        <div class="confetti" aria-hidden="true">🎊</div>
+        <div class="participant-card first" role="listitem">
+          <div class="crown">👑</div>
+          <div class="rank-badge champion-badge">1st</div>
+          <div class="avatar champion-avatar">
+            <span class="avatar-emoji">😎</span>
+          </div>
+          <h3 class="name">{{ podium()?.firstPlace?.participantName }}</h3>
+          <div class="score champion-score">{{ podium()?.firstPlace?.score }} pts</div>
+          <div class="stats">
+            <div class="stat">✅ {{ getAccuracy(podium()?.firstPlace ?? null) }}%</div>
+            <div class="stat">⚡ {{ formatTime(podium()?.firstPlace?.averageSpeedMs || 0) }}</div>
+          </div>
+        </div>
+        <div class="stand champion-stand" [style.height]="getHeight(1)"></div>
+      </div>
+
+      <!-- Third Place -->
+      <div class="podium-stand third" *ngIf="podium()?.thirdPlace" [@podiumReveal]>
+        <div class="trophy">🥉</div>
+        <div class="participant-card third" role="listitem">
+          <div class="rank-badge">3rd</div>
+          <div class="avatar">
+            <span class="avatar-emoji">👤</span>
+          </div>
+          <h3 class="name">{{ podium()?.thirdPlace?.participantName }}</h3>
+          <div class="score">{{ podium()?.thirdPlace?.score }} pts</div>
+          <div class="stats">
+            <div class="stat">✅ {{ getAccuracy(podium()?.thirdPlace ?? null) }}%</div>
+            <div class="stat">⚡ {{ formatTime(podium()?.thirdPlace?.averageSpeedMs || 0) }}</div>
+          </div>
+        </div>
+        <div class="stand" [style.height]="getHeight(3)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading() && !podium()?.firstPlace">
+    <p>🏆 No results available yet</p>
+  </div>
+</div>

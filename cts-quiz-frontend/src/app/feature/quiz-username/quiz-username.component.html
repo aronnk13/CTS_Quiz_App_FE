@@ -1,0 +1,40 @@
+<section class="join-container">
+  <div class="card shadow-lg border-0" style="max-width: 500px; margin: 0 auto;">
+    <div class="card-header bg-primary text-white text-center py-4">
+      <p class="text-white-50 mb-2 small">Waiting room</p>
+      <h1 class="h3 mb-2">Enter your name</h1>
+      <p class="text-white-50 mb-0 small">We will take you to the lobby while the host gets ready.</p>
+    </div>
+
+    <div class="card-body p-4">
+      <label for="name" class="form-label fw-semibold">Your display name</label>
+
+      <div class="input-group mb-3">
+        <span class="input-group-text">👤</span>
+        <input
+          id="name"
+          class="form-control"
+          [(ngModel)]="userName"
+          (ngModelChange)="validateName($event)"
+          placeholder="e.g. Priya Sharma"
+          autocomplete="off"
+          aria-describedby="name-help"
+        />
+      </div>
+
+      <div class="d-grid">
+        <button class="btn btn-primary btn-lg" (click)="joinQuiz()" [disabled]="showWarning || !userName.trim()">
+          Go to waiting lobby →
+        </button>
+      </div>
+
+      <p id="name-help" class="form-text text-center mt-3">Your name appears in the lobby and the leaderboard.</p>
+
+      @if (showWarning) {
+        <div class="alert alert-warning mt-3" role="alert">
+          <span class="fw-bold">!</span> Enter a valid name (letters only).
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,82 @@
+<div class="progressive-container">
+  <div class="header" *ngIf="!isLoading() && leaderboard()">
+    <h2 class="title">🎯 Progressive Leaderboard</h2>
+    <p class="subtitle">Base Score + Streak Bonuses</p>
+  </div>
+
+  <div class="loading" *ngIf="isLoading()">
+    <div class="spinner" role="status" aria-hidden="true"></div>
+    <p class="loading-text">Loading leaderboard...</p>
+  </div>
+
+  <div class="entries-list" *ngIf="!isLoading() && leaderboard()">
+    <div
+      *ngFor="let entry of leaderboard()?.entries; let i = index"
+      class="entry-card"
+      [class.current-user]="isCurrentUser(entry)"
+      [attr.aria-current]="isCurrentUser(entry) ? 'true' : null"
+      [@slideIn]
+      role="listitem"
+    >
+      <div class="rank-section" aria-hidden="true">
+        <div class="rank-number">#{{ entry.rank }}</div>
+      </div>
+
+      <div class="player-section">
+        <div class="player-name">
+          <span class="name-text">{{ entry.participantName }}</span>
+          <span class="you-badge" *ngIf="isCurrentUser(entry)" aria-label="You">YOU</span>
+        </div>
+
+        <div class="score-breakdown" aria-hidden="true">
+          <div class="score-part base">
+            <span class="label">Base</span>
+            <span class="value">{{ entry.baseScore }}</span>
+          </div>
+
+          <div class="plus">+</div>
+
+          <div class="score-part bonus">
+            <span class="label">Streak</span>
+            <span class="value">{{ entry.streakBonus }}</span>
+          </div>
+
+          <div class="equals">=</div>
+
+          <div class="score-part total" aria-label="Total score">
+            <span class="value total-value">{{ entry.totalScore }}</span>
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="meta-label">Accuracy</span>
+            <span class="meta-value">{{ entry.accuracy ?? 0 }}%</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Avg Time</span>
+            <span class="meta-value">{{ entry.averageResponseTimeMs ? ((entry.averageResponseTimeMs / 1000) | number:'1.1-1') + 's' : '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="streak-section" *ngIf="entry.currentStreak > 0" aria-hidden="true">
+        <div class="streak-flame" [style.color]="getStreakColor(entry.currentStreak)">🔥</div>
+        <div class="streak-info">
+          <div class="streak-number">{{ entry.currentStreak }}</div>
+          <div class="streak-label">streak</div>
+        </div>
+        <div class="streak-badge" *ngIf="entry.hasStreakBadge">⭐ On Fire!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="streak-legend" *ngIf="!isLoading()">
+    <h3 class="legend-title">Streak Bonuses</h3>
+    <ul class="legend-list">
+      <li>🔥 3 correct in a row = +50 bonus points</li>
+      <li>🔥🔥 6 correct in a row = +100 bonus points</li>
+      <li>🔥🔥🔥 Keep your streak alive for bigger rewards</li>
+    </ul>
+  </div>
+</div>

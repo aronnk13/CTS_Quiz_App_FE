@@ -1,0 +1,130 @@
+
+
+<form
+  class="feedback-card"
+  [formGroup]="feedbackForm"
+  (ngSubmit)="submit()"
+  novalidate
+>
+  <h2 class="title">Quiz Feedback</h2>
+
+  <!-- Grid container for fields -->
+  <div class="form-grid">
+
+    <!-- Hidden fields for Quiz ID and Participant ID -->
+    <input type="hidden" formControlName="quizId" />
+    <input type="hidden" formControlName="participantId" />
+
+    <!-- Rating (Gamified Stars with Animation) -->
+    <div class="field">
+      <label class="label">How was your experience?</label>
+
+      <div class="rating-container" role="radiogroup" aria-label="Star rating">
+        <ng-container *ngFor="let s of [1,2,3,4,5]">
+          <button
+            type="button"
+            class="star-button"
+            [class.filled]="(feedbackForm.value?.rating || 0) >= s"
+            [class.selected]="(feedbackForm.value?.rating || 0) === s"
+            (click)="feedbackForm.patchValue({ rating: s })"
+            [attr.aria-pressed]="(feedbackForm.value?.rating || 0) === s"
+            [attr.aria-label]="s + ' star'"
+            [title]="getRatingLabel(s)"
+          >
+            <span class="star-icon">★</span>
+            <span class="star-label">{{ getRatingLabel(s) }}</span>
+          </button>
+        </ng-container>
+      </div>
+
+      <div class="rating-feedback">
+        <span class="rating-value">{{ getRatingMessage(feedbackForm.value?.rating || 0) }}</span>
+      </div>
+    </div>
+
+    <!-- Quick Words (chips) -->
+    <div class="field">
+      <label class="label">Quick Words</label>
+
+      <div class="chips" role="listbox" aria-label="Quick words">
+        <button
+          type="button"
+          class="chip"
+          *ngFor="let word of commentWords"
+          [class.active]="selectedWords.includes(word)"
+          (click)="toggleWord(word)"
+          role="option"
+          [attr.aria-selected]="selectedWords.includes(word)"
+        >
+          {{ word }}
+        </button>
+
+        <button type="button" class="chip clear" (click)="clearWords()">
+          Clear Words
+        </button>
+      </div>
+    </div>
+
+    <!-- Comments (optional)
+    <div class="field">
+      <label class="label" for="comments">Comments (optional)</label>
+      <textarea
+        id="comments"
+        rows="3"
+        formControlName="comments"
+        class="textarea"
+        placeholder="Add any additional comments..."
+      ></textarea>
+    </div> -->
+
+    <!-- Emoji (no textbox, only emoji buttons) -->
+    <div class="field">
+      <label class="label">Emoji</label>
+
+      <div class="emoji-row" aria-label="Emoji reaction options">
+        <button
+          type="button"
+          class="emoji"
+          *ngFor="let e of emojiList; let idx = index"
+          [class.selected]="feedbackForm.value?.emojiReaction === e"
+          (click)="selectEmoji(e)"
+          [attr.aria-label]="
+            idx === 0 ? 'very happy' :
+            idx === 1 ? 'happy' :
+            idx === 2 ? 'neutral' :
+            idx === 3 ? 'sad' : 'very sad'
+          "
+          [title]="
+            idx === 0 ? 'Very Happy' :
+            idx === 1 ? 'Happy' :
+            idx === 2 ? 'Neutral' :
+            idx === 3 ? 'Sad' : 'Very Sad'
+          "
+        >
+          {{ e }}
+          <span class="emoji-caption">
+            {{
+              idx === 0 ? 'Very Happy' :
+              idx === 1 ? 'Happy' :
+              idx === 2 ? 'Neutral' :
+              idx === 3 ? 'Sad' : 'Very Sad'
+            }}
+          </span>
+        </button>
+
+        <!-- Keep the form value bound without showing a text box -->
+        <input type="hidden" formControlName="emojiReaction" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-primary" type="submit" *ngIf="!feedbackSubmitted">
+      Submit Feedback
+    </button>
+    <button class="btn-primary" type="button" *ngIf="feedbackSubmitted" (click)="returnToHome()">
+      ← Return to Home
+    </button>
+  </div>
+</form>

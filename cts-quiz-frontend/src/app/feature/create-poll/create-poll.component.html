@@ -1,0 +1,278 @@
+<!-- Professional Header -->
+<div class="poll-header  text-dark py-4 mb-4">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="mb-1 fw-bold">📊 Create New Poll</h2>
+        <p class="mb-0 opacity-75">Host: <span class="fw-semibold">{{ hostName }}</span></p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="opacity-75 small">
+          <i class="fas fa-calendar me-2"></i>{{ currentDateTime }}
+        </div>
+        <div class="small">
+          <i class="fas fa-clock me-2"></i>Session Active
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="container-fluid px-lg-5 pb-5">
+  <div class="row mt-4 g-4">
+    <div class="col-lg-8 col-md-12" [formGroup]="pollForm">
+      <!-- Poll Information Card -->
+      <div class="card builder-card border-top-purple mb-4">
+        <div class="card-body p-4">
+          <h6 class="text-muted fw-bold mb-3">📊 Poll Information</h6>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <input type="text" formControlName="pollTitle" class="form-control cts-input" 
+                     placeholder="Poll Title *" [class.is-invalid]="submitted && f['pollTitle'].errors">
+              <div *ngIf="submitted && f['pollTitle'].errors" class="invalid-feedback">
+                Title is required
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="pollAnonymous" formControlName="pollAnonymous">
+                <label class="form-check-label" for="pollAnonymous">
+                  Anonymous Poll
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Questions Cards -->
+      <div formArrayName="questions">
+        <div *ngFor="let question of questions.controls; let qi = index" [formGroupName]="qi" 
+             class="card builder-card border-top-blue mb-4 shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between mb-3">
+              <span class="q-label">❓ Question {{ qi + 1 }}</span>
+              <button type="button" class="btn btn-warning btn-sm text-white fw-bold">Suggestions</button>
+            </div>
+
+            <textarea formControlName="questionText" class="form-control cts-textarea mb-3" 
+                     rows="2" placeholder="What is your poll question? *"
+                     [class.is-invalid]="submitted && question.get('questionText')?.errors"></textarea>
+            <div *ngIf="submitted && question.get('questionText')?.errors" class="invalid-feedback d-block">
+              Question text is required
+            </div>
+
+            <div class="row mb-3 question-type-selector">
+              <div class="col-md-6">
+                <select formControlName="questionType" class="form-select cts-input" 
+                        (change)="onQuestionTypeChange(qi)">
+                  <option *ngFor="let type of questionTypes" [value]="type.value">
+                    {{ type.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="alert alert-info mb-3">
+              <i class="fas fa-info-circle"></i> Question must have at least 2 options.
+            </div>
+
+            <div formArrayName="options">
+              <div *ngFor="let option of getOptions(qi).controls; let oi = index" [formGroupName]="oi" 
+                   class="input-group mb-2">
+                <span class="input-group-text bg-white"><i class="bi bi-circle"></i></span>
+                <input formControlName="optionLabel" class="form-control" 
+                       placeholder="Option {{ oi + 1 }}" [readonly]="!isCustomType(qi)"
+                       [class.is-invalid]="submitted && option.get('optionLabel')?.errors">
+                <button class="btn btn-outline-danger" (click)="removeOption(qi, oi)" 
+                        *ngIf="getOptions(qi).length > 2 && isCustomType(qi)">×</button>
+              </div>
+              <button type="button" class="btn btn-link btn-sm text-decoration-none" 
+                      (click)="addOption(qi)" *ngIf="isCustomType(qi)">+ Add Option</button>
+            </div>
+
+            <button type="button" class="btn btn-danger btn-sm mt-3" (click)="removePollQuestion(qi)" 
+                    *ngIf="questions.length > 1">
+              <i class="fas fa-trash-alt"></i> Remove Question
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note: Polls support only one question -->
+      <div class="text-center mt-4" *ngIf="questions.length === 0">
+        <button type="button" class="btn btn-primary btn-lg w-50" (click)="addPollQuestion()">
+          <i class="fas fa-plus-circle"></i> Add Question
+        </button>
+      </div>
+      <div class="alert alert-info text-center mt-3" *ngIf="questions.length === 1">
+        <i class="fas fa-info-circle"></i> Polls support one question with multiple options. To add more choices, use the "+ Add Option" button above.
+      </div>
+    </div>
+
+    <!-- Poll Preview Card -->
+    <div class="col-lg-4 col-md-12">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><span class="me-2">👁️</span>Poll Preview ({{ questions.length }} questions)</h5>
+        </div>
+        <div class="card-body">
+          @if (questions.length === 0) {
+          <div class="text-center py-5">
+            <div class="display-1 mb-3">📊</div>
+            <p class="text-muted">No questions added yet. Create your first poll question above.</p>
+          </div>
+          } @else {
+          <div class="list-group mb-3">
+            @for (q of questions.controls; let i = $index; track i) {
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-warning text-dark rounded-pill">Q{{ i + 1 }}</span>
+                <button class="btn btn-outline-danger btn-sm" type="button" (click)="removePollQuestion(i)"
+                  title="Delete">🗑️</button>
+              </div>
+              <div class="fw-semibold mb-2">{{ q.get('questionText')?.value || 'No question text' }}</div>
+              <div class="d-flex flex-column gap-1">
+                @for (opt of getOptions(i).controls; track $index) {
+                <div class="badge bg-light text-dark">
+                  {{ opt.get('optionLabel')?.value || 'Option ' + ($index + 1) }}
+                </div>
+                }
+              </div>
+              <div class="d-flex gap-2 flex-wrap mt-2">
+                <span class="badge bg-info">{{ getQuestionTypeLabel(q.get('questionType')?.value) }}</span>
+              </div>
+            </div>
+            }
+          </div>
+          <button type="button" class="btn btn-warning text-dark w-100 fw-bold" (click)="onSubmit()" [disabled]="loading || questions.length === 0 || pollForm.invalid">
+            {{ loading ? '⏳ Creating...' : '🚀 Create Poll' }}
+          </button>
+          @if (questions.length === 0) {
+          <div class="text-muted text-center mt-2 small">
+            Add at least one question to create poll.
+          </div>
+          }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="row mt-3" *ngIf="successMessage || errorMessage">
+    <div class="col-12">
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+    </div>
+  </div>
+</main>
+
+<!-- TUTORIAL OVERLAY -->
+@if (tutorialActive()) {
+<div class="tutorial-overlay">
+  <!-- Spotlight -->
+  @if (getSpotlightPosition(); as spotlightPos) {
+  <div class="tutorial-spotlight" 
+       [style.top]="spotlightPos.top"
+       [style.left]="spotlightPos.left"
+       [style.width]="spotlightPos.width"
+       [style.height]="spotlightPos.height">
+  </div>
+  }
+
+  <!-- Tutorial Popup -->
+  @if (getCurrentStep(); as step) {
+  <div class="tutorial-popup"
+       [style.top]="getPopupPosition()?.top || '50px'"
+       [style.left]="getPopupPosition()?.left || '50px'">
+    
+    <h4>{{ step.title }}</h4>
+    <p>{{ step.description }}</p>
+    
+    <div class="tutorial-controls">
+      @if (step.skipable) {
+      <button class="tutorial-skip" (click)="skipTutorial()">
+        Skip Tutorial
+      </button>
+      }
+      
+      <div class="tutorial-navigation">
+        @if (currentTutorialStep() > 0) {
+        <button class="tutorial-btn secondary" (click)="previousTutorialStep()">
+          Previous
+        </button>
+        }
+        
+        @if (currentTutorialStep() < tutorialSteps().length - 1) {
+        <button class="tutorial-btn" (click)="nextTutorialStep()">
+          Next
+        </button>
+        } @else {
+        <button class="tutorial-btn" (click)="skipTutorial()">
+          Finish
+        </button>
+        }
+      </div>
+    </div>
+    
+    <div class="tutorial-progress">
+      Step {{ currentTutorialStep() + 1 }} of {{ tutorialSteps().length }}
+      
+      <div class="tutorial-step-indicator">
+        @for (step of tutorialSteps(); track step.id; let i = $index) {
+        <div class="tutorial-step-dot" 
+             [class.active]="i === currentTutorialStep()"
+             [class.completed]="i < currentTutorialStep()">
+        </div>
+        }
+      </div>
+    </div>
+    
+  </div>
+  }
+</div>
+}
+
+<!-- QR Code Modal -->
+@if (showQrCode) {
+<div class="qr-modal-overlay" (click)="showQrCode = false">
+  <div class="qr-modal" (click)="$event.stopPropagation()">
+    <div class="qr-modal-header">
+      <h5 class="mb-0">🎯 Poll Created Successfully!</h5>
+      <button type="button" class="btn-close" (click)="showQrCode = false"></button>
+    </div>
+    <div class="qr-modal-body text-center">
+      <p class="mb-4">Share this QR code for participants to join your poll:</p>
+      
+      <div class="qr-code-container">
+        <qrcode [qrdata]="qrCodeValue" 
+                [width]="200" 
+                [errorCorrectionLevel]="'M'"
+                [colorDark]="'#000000'"
+                [colorLight]="'#ffffff'">
+        </qrcode>
+      </div>
+      
+      <div class="mt-4">
+        <p class="text-muted small mb-2">Or share this link:</p>
+        <div class="input-group">
+          <input type="text" class="form-control" [value]="pollUrl" readonly>
+          <button class="btn btn-outline-secondary" type="button" (click)="copyToClipboard()">
+            📋 Copy
+          </button>
+        </div>
+      </div>
+      
+      <div class="mt-4 d-flex gap-2 justify-content-center">
+        <button type="button" class="btn btn-secondary" (click)="showQrCode = false">
+          Create Another Poll
+        </button>
+        <button type="button" class="btn btn-primary" (click)="goBackToHost()">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

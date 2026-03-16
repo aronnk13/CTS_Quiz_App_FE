@@ -1,0 +1,90 @@
+<!-- ===== Standalone Analytics Page ===== -->
+<div class="poll-analytics-container" *ngIf="!isQuestionWise; else compactTpl">
+  <!-- Top bar -->
+  <nav class="analytics-navbar">
+    <div class="navbar-content">
+      <h1 class="analytics-title">📊 Poll Analytics</h1>
+      <button class="export-btn" (click)="onExportClick()">📥 Export</button>
+    </div>
+  </nav>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-overlay"><div class="spinner"></div><p>Loading poll analytics...</p></div>
+  }
+
+  <!-- Quick stats -->
+  <div class="analytics-cards">
+    <div class="analytics-card card-questions"><div class="card-icon">❓</div><div class="card-content"><h3>{{ totalQuestions() }}</h3><p>Total Questions</p></div></div>
+    <div class="analytics-card card-participants"><div class="card-icon">👥</div><div class="card-content"><h3>{{ totalParticipants() }}</h3><p>Total Participants</p></div></div>
+    <div class="analytics-card card-published"><div class="card-icon">📅</div><div class="card-content"><h3>{{ publishedDate() }}</h3><p>Published Date</p></div></div>
+    <div class="analytics-card card-votes"><div class="card-icon">🗳️</div><div class="card-content"><h3>{{ totalVotes() }}</h3><p>Total Votes</p></div></div>
+  </div>
+
+  <!-- Single row (poll is a single question) -->
+  <div class="question-analytics-section">
+    <h2 class="section-title">📈 Poll Result</h2>
+    <div class="table-container">
+      <table class="analytics-table">
+        <thead><tr><th>Question</th><th>Analytics</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="question-text">{{ pollData()?.pollQuestion }}</td>
+            <td class="analytics-actions">
+              <div class="action-group">
+                <button class="view-btn" (click)="toggleChartView(pollData()?.pollId || 0)">
+                  {{ activePollId() === (pollData()?.pollId || 0) ? '👁️ Hide' : '👁️ View' }}
+                </button>
+
+                <select
+                  class="chart-type-select"
+                  [(ngModel)]="selectedChartTypes[pollData()?.pollId || 0]"
+                  (change)="onChartTypeChange(pollData()?.pollId || 0)"
+                  [disabled]="activePollId() !== (pollData()?.pollId || 0)">
+                  <option value="pie">🥧 Pie Chart</option>
+                  <option value="line">📈 Line Graph</option>
+                  <option value="doughnut">🍩 Donut Chart</option>
+                </select>
+              </div>
+            </td>
+          </tr>
+
+          @if (activePollId() === (pollData()?.pollId || 0)) {
+            <tr class="chart-row">
+              <td colspan="2">
+                <div class="chart-container">
+                  <div class="chart-wrapper">
+                    <canvas [id]="'chart-' + (pollData()?.pollId || 0)" class="analytics-chart"></canvas>
+                  </div>
+                  <button class="download-chart-btn" (click)="downloadChart(pollData()?.pollId || 0)">💾 Download Chart</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Compact Question-wise Overlay ===== -->
+<ng-template #compactTpl>
+  <div class="compact-result-container">
+    @if (loading()) {
+      <div class="loading-overlay"><div class="spinner"></div><p>Loading poll results…</p></div>
+    } @else {
+      <div class="compact-card">
+        <div class="compact-header">
+          <h3 class="compact-title">{{ pollAnalytics[(pollData()?.pollId || 0)].pollQuestion || 'Poll' }}</h3>
+          <span class="compact-total">🗳️ {{ pollAnalytics[(pollData()?.pollId || 0)].totalResponses || 0 }} votes</span>
+        </div>
+        <div class="compact-chart-wrapper">
+          <canvas [id]="'compact-chart-' + (pollData()?.pollId || 0)" class="analytics-chart"></canvas>
+        </div>
+        <div class="compact-actions">
+          <button class="download-chart-btn" (click)="downloadChart(pollData()?.pollId || 0)">💾 Download Chart</button>
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

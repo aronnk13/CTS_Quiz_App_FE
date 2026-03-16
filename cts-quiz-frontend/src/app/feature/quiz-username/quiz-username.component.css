@@ -1,0 +1,197 @@
+/* Quiz Username Component - Bootstrap based */
+
+.join-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eaf4ff 0%, #f7fbff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Ensure proper card display */
+.card {
+  width: 100%;
+  max-width: 500px;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #0066CC 0%, #003D7A 100%) !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.card-header {
+  color: white;
+  padding: 32px;
+  text-align: center;
+}
+
+.join-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.join-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.join-content {
+  padding: 48px 32px;
+  text-align: center;
+}
+
+label {
+  display: block;
+  font-size: 18px;
+  color: var(--cognizant-gray-800);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.input-wrapper {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--cognizant-gray-500);
+  z-index: 2;
+}
+
+input {
+  width: 100%;
+  padding: 16px 20px 16px 48px;
+  font-size: 16px;
+  border: 2px solid var(--cognizant-gray-300);
+  border-radius: var(--radius);
+  transition: var(--transition);
+  background: var(--cognizant-white);
+  color: var(--cognizant-gray-800);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--cognizant-primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+input::placeholder {
+  color: var(--cognizant-gray-500);
+}
+
+.join-button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--cognizant-primary), var(--cognizant-accent));
+  color: white;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.join-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.join-button:disabled {
+  background: var(--cognizant-gray-300);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.note {
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--cognizant-gray-500);
+  line-height: 1.5;
+}
+
+.warning {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--error);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-icon {
+  font-size: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .join-container { padding: 20px; }
+  .join-content { padding: 32px 20px; }
+  .join-title { font-size: 24px; }
+}
+
+/* Custom Snackbar Styling */
+::ng-deep .error-snackbar {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 17px !important;
+  padding: 24px !important;
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35) !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  min-width: 450px !important;
+}
+
+::ng-deep .error-snackbar .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-size: 17px !important;
+  line-height: 1.6 !important;
+}
+
+::ng-deep .error-snackbar .mat-mdc-button {
+  color: white !important;
+  font-weight: 700 !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 8px 20px !important;
+  transition: all 0.3s ease !important;
+}
+
+::ng-deep .error-snackbar .mat-mdc-button:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+::ng-deep .error-snackbar .mdc-snackbar__surface {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}

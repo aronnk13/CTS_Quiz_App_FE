@@ -1,0 +1,126 @@
+<!-- ============================================ -->
+<!-- PARTICIPANT PAGE - SPLIT SCREEN LAYOUT      -->
+<!-- ============================================ -->
+<!-- Modified to match landing-page login modal  -->
+<!-- split-screen design:                        -->
+<!-- - 60% image section (left)                  -->
+<!-- - 40% form section (right)                  -->
+<!-- - Optimized spacing for no-scroll fit       -->
+<!-- ============================================ -->
+
+<section class="participant-container-split">
+	<!-- Left side: Background Image (60% width, 100% height) -->
+	<div class="image-section">
+		<img src="/assets/participantpagebg.jpg" alt="Quiz Background" class="background-image" />
+	</div>
+
+		<!-- Right side: Form Content (40% width) -->
+		<div class="form-section">
+			<div class="card shadow-lg border-0 merged-card">
+				<div class="card-header bg-primary text-dark-blue text-center py-4">
+					
+						<!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					 -->
+					<h1 class="quiz-battlefield-title">Quiz-BattleField</h1>
+					<p class="text-dark-blue-50 mb-0 small">Enter your details to join the quiz</p>
+				</div>
+
+				<!-- MODIFIED: Reduced padding from p-4 to p-3 for better fit -->
+				<div class="card-body  p-3">
+					<div class="text-black  alert alert-info banner-info" style="background-color: rgb(222, 135, 144);" role="alert">
+						<strong>Heads up:</strong> Late joins are blocked once the quiz starts. Scan or enter quiz code to join instantly!
+					</div>
+
+					<form (submit)="onJoinQuiz($event)">
+					<!-- Step 1: Quiz Code Entry (First - Moved to Top) -->
+					<!-- MODIFIED: Changed mb-4 to mb-2 for better spacing -->
+					<div class="mb-2">
+						<div class="d-flex align-items-center justify-content-between mb-2">
+							<label class="quiz-code-label mb-0" for="code">Enter Quiz Code</label>
+							
+							<!-- Scanner Icon Buttons -->
+							<div class="scanner-buttons-container mb-0">
+								<button type="button" class="scanner-icon-btn" (click)="toggleScanner()" [title]="scannerActive ? 'Close Scanner' : 'Scan QR Code'">
+									<svg *ngIf="!scannerActive" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+										<path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+										<path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+										<path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+										<rect x="7" y="7" width="10" height="10" rx="1"></rect>
+									</svg>
+									<svg *ngIf="scannerActive" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</button>
+								
+								<button type="button" class="scanner-icon-btn" (click)="openFileInput()" title="Import QR Code Image">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+										<polyline points="17 8 12 3 7 8"></polyline>
+										<line x1="12" y1="3" x2="12" y2="15"></line>
+									</svg>
+								</button>
+								<input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+							</div>
+						</div>						<!-- QR Scanner Camera View -->
+						<div *ngIf="scannerActive" class="scanner-container">
+							<zxing-scanner
+								[tryHarder]="true"
+								(scanSuccess)="onCodeScanned($event)"
+								(scanError)="onScanError($event)"
+								(camerasFound)="onCamerasFound($event)"
+								(permissionResponse)="onPermissionResponse($event)"
+								[device]="selectedCamera">
+							</zxing-scanner>
+							<div class="scanner-overlay">
+								<div class="scanner-frame"></div>
+								<p class="scanner-hint">Position QR code within frame</p>
+							</div>
+						</div>
+
+						<input
+							id="code"
+							name="code"
+							class="form-control quiz-input-animated reduced-width"
+							placeholder="e.g. CTS-2024-ENG or scan QR above"
+							[(ngModel)]="code"
+							required
+						/>
+					</div>
+
+					<!-- Step 2: Username Entry (Second - Moved to Bottom) -->
+					<!-- MODIFIED: Changed mb-4 to mb-2 for better spacing -->
+					<div class="mb-2">
+						<label class="name-label" for="name">Enter your name</label>
+						<input
+							id="name"
+							name="name"
+							class="form-control quiz-input-animated reduced-width"
+							placeholder="e.g. Priya Sharma"
+							[(ngModel)]="userName"
+							(ngModelChange)="validateName($event)"
+							autocomplete="off"
+							required
+						/>
+						<p class="form-text text-muted mt-2 small">Your name appears in the lobby and leaderboard</p>
+						
+						<div *ngIf="showWarning" class="alert alert-warning mt-2" role="alert">
+							<span class="fw-bold">!</span> Enter a valid name (letters only).
+						</div>
+					</div>
+
+					<!-- Submit Button -->
+					<div class="d-grid">
+						<button type="submit" class="btn lobby-btn-animated" [disabled]="showWarning || !userName.trim() || !code.trim() || isJoining">
+							{{ isJoining ? 'Joining...' : 'Join Quiz Lobby 🚀' }}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>

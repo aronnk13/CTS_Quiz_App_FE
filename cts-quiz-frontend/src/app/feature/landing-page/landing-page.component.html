@@ -1,0 +1,816 @@
+<div class="cognizant-landing">
+<!-- Fancy Popup Notification -->
+@if (popup()) {
+  <div class="fancy-popup-container">
+    <div class="fancy-popup" 
+         [class.popup-success]="popup()?.type === 'success'" 
+         [class.popup-error]="popup()?.type === 'error'" 
+         [class.popup-warning]="popup()?.type === 'warning'">
+      <div class="popup-icon">
+        @if (popup()?.type === 'success') {
+          <span class="icon-checkmark">✓</span>
+        } @else if (popup()?.type === 'error') {
+          <span class="icon-cross">✕</span>
+        } @else {
+          <span class="icon-warning">⚠</span>
+        }
+      </div>
+      <div class="popup-content">
+        <p class="popup-message">{{ popup()?.message }}</p>
+      </div>
+      <button class="popup-close" (click)="closePopup()" aria-label="Close">×</button>
+    </div>
+  </div>
+}
+
+<!-- Cognizant Header -->
+<header class="cognizant-header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center py-3">
+      <div class="cognizant-brand">
+        <div class="cognizant-logo">
+          <img src="/Cognizant_logo.png" alt="Cognizant Logo" class="cognizant-logo-img" />
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Cognizant</span>
+          <span class="brand-tagline">Quiz Platform</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="auth-section" *ngIf="!isAuthenticated(); else loggedInActions">
+          <button class="cognizant-btn-login" (click)="toggleLoginForm()">
+            <i class="fas fa-sign-in-alt me-1"></i>Login
+          </button>
+          <button class="cognizant-btn-register" (click)="toggleRegistrationForm()">
+            <i class="fas fa-user-plus me-1"></i>Register
+          </button>
+        </div>
+        
+        <ng-template #loggedInActions>
+          <div class="role-navigation">
+            <!-- User Access - Always Available -->
+            <button class="cognizant-btn-user" (click)="navigateToParticipant()">
+              <i class="fas fa-user me-1"></i>Join Quiz
+            </button>
+            
+            <!-- Host Access - Only if user has Host role -->
+            <!-- <button class="cognizant-btn-host" *ngIf="canAccessHost()" (click)="navigateToQuizCreation()">
+              <i class="fas fa-graduation-cap me-1"></i>Host Dashboard
+            </button> -->
+            
+<button
+  class="cognizant-btn-host"
+  *ngIf="canAccessHost() && !canAccessAdmin()"
+  (click)="navigateToQuizCreation()"
+>
+  <i class="fas fa-graduation-cap me-1"></i>Host Dashboard
+</button>
+
+            <!-- Admin Access - Only if user has Admin role --> 
+            <button *ngIf="canAccessAdmin()" class="cognizant-btn-admin" (click)="router.navigate(['/admin/dashboard'])">
+              <i class="fas fa-user-shield me-1"></i>Admin Dashboard
+            </button>
+            
+            <!-- Admin Access Disabled for non-admin users -->
+            <!-- <button *ngIf="!canAccessAdmin() && isAuthenticated()" class="cognizant-btn-admin-disabled" (click)="showAccessAlert('admin')">
+              <i class="fas fa-user-shield me-1"></i>Admin
+              <span class="access-badge">Restricted</span>
+            </button> -->
+            
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Login Modal with Split Screen -->
+<div class="auth-modal-overlay" *ngIf="showLoginForm()" (click)="showLoginForm.set(false)">
+  <section class="login-container-split" (click)="$event.stopPropagation()">
+    <!-- Left side: Background Image (50% width, 100% height) -->
+    <div class="image-section">
+      <img src="/assets/login_image.jpg" alt="Login Background" class="background-image" />
+    </div>
+
+    <!-- Right side: Form Content (50% width) -->
+    <div class="auth-modal auth-modal-split">
+      <div class="auth-modal-header">
+        <h3><i class="fas fa-sign-in-alt me-2"></i>Welcome Back</h3>
+        <button class="close-btn" (click)="showLoginForm.set(false)">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="auth-form">
+        <div class="form-group">
+          <label for="employeeId">
+            <i class="fas fa-user me-2"></i>Employee ID
+          </label>
+          <input
+            type="text"
+            id="employeeId"
+            name="employeeId"
+            [(ngModel)]="loginData.employeeId"
+            required
+            class="form-control"
+            placeholder="Enter your Employee ID"
+            autocomplete="username"
+          />
+        </div>
+        <div class="form-group password-field">
+          <label for="password">
+            <i class="fas fa-lock me-2"></i>Password
+          </label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showLoginPassword() ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="loginData.password"
+              required
+              class="form-control"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button 
+              type="button" 
+              class="password-toggle-btn" 
+              (click)="toggleLoginPasswordVisibility()"
+              aria-label="Toggle password visibility">
+              <svg class="eye-icon" width="24" height="24" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                @if (showLoginPassword()) {
+                  <!-- Eye Open Icon -->
+                  <path d="M512 256C320 256 160 384 96 512c64 128 224 256 416 256s352-128 416-256c-64-128-224-256-416-256z" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="128" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="48" fill="#1F2937"/>
+                } @else {
+                  <!-- Eye Closed Icon (with slash) -->
+                  <path d="M512 256C320 256 160 384 96 512c64 128 224 256 416 256s352-128 416-256c-64-128-224-256-416-256z" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="128" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <line x1="192" y1="192" x2="832" y2="832" stroke="#1F2937" stroke-width="64" stroke-linecap="round"/>
+                }
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="  auth-submit-btn" [disabled]="isLoading()">
+          <span *ngIf="!isLoading()">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+          </span>
+          <span *ngIf="isLoading()">
+            <i class="fas fa-spinner fa-spin me-2"></i>Logging in...
+          </span>
+        </button>
+        <div class="auth-footer">
+          <p>Don't have an account? 
+            <a href="#" (click)="$event.preventDefault(); toggleRegistrationForm()">Register here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- Registration Modal with Split Screen -->
+<div class="auth-modal-overlay" *ngIf="showRegistrationForm()" (click)="showRegistrationForm.set(false)">
+  <section class="register-container-split" (click)="$event.stopPropagation()">
+    <!-- Left side: Background Image (50% width, 100% height) -->
+    <div class="image-section">
+      <img src="/assets/register_image.jpg" alt="Registration Background" class="background-image" />
+    </div>
+
+    <!-- Right side: Form Content (50% width) -->
+    <div class="auth-modal registration-modal auth-modal-split">
+      <div class="auth-modal-header">
+        <h3><i class="fas fa-user-plus me-2"></i>Create Account</h3>
+        <button class="close-btn" (click)="showRegistrationForm.set(false)">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form (ngSubmit)="onRegister()" #regForm="ngForm" class="auth-form registration-form">
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label for="firstName">
+              <i class="fas fa-user me-2"></i>First Name
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              [(ngModel)]="registrationData.firstName"
+              required
+              class="form-control"
+              placeholder="First Name"
+            />
+          </div>
+          <div class="form-group half-width">
+            <label for="lastName">
+              <i class="fas fa-user me-2"></i>Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              [(ngModel)]="registrationData.lastName"
+              required
+              class="form-control"
+              placeholder="Last Name"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label for="regEmployeeId">
+              <i class="fas fa-id-badge me-2"></i>Employee ID
+            </label>
+            <input
+              type="text"
+              id="regEmployeeId"
+              name="regEmployeeId"
+              [(ngModel)]="registrationData.employeeId"
+              required
+              class="form-control"
+              placeholder="Employee ID"
+            />
+          </div>
+          <div class="form-group half-width">
+            <label for="email">
+              <i class="fas fa-envelope me-2"></i>Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="registrationData.email"
+              required
+              class="form-control"
+              placeholder="email@cognizant.com"
+            />
+          </div>
+        </div>
+        <div class="form-group password-field">
+          <label for="regPassword">
+            <i class="fas fa-lock me-2"></i>Password
+          </label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="regPassword"
+              name="regPassword"
+              [(ngModel)]="registrationData.password"
+              required
+              class="form-control"
+              placeholder="Create a secure password"
+            />
+            <button 
+              type="button" 
+              class="password-toggle-btn" 
+              (click)="togglePasswordVisibility()"
+              aria-label="Toggle password visibility">
+              <svg class="eye-icon" width="24" height="24" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                @if (showPassword()) {
+                  <!-- Eye Open Icon -->
+                  <path d="M512 256C320 256 160 384 96 512c64 128 224 256 416 256s352-128 416-256c-64-128-224-256-416-256z" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="128" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="48" fill="#1F2937"/>
+                } @else {
+                  <!-- Eye Closed Icon (with slash) -->
+                  <path d="M512 256C320 256 160 384 96 512c64 128 224 256 416 256s352-128 416-256c-64-128-224-256-416-256z" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="512" cy="512" r="128" stroke="#1F2937" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+                  <line x1="192" y1="192" x2="832" y2="832" stroke="#1F2937" stroke-width="64" stroke-linecap="round"/>
+                }
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="auth-submit-btn" [disabled]="isLoading()">
+          <span *ngIf="!isLoading()">
+            <i class="fas fa-user-plus me-2"></i>Create Account
+          </span>
+          <span *ngIf="isLoading()">
+            <i class="fas fa-spinner fa-spin me-2"></i>Creating Account...
+          </span>
+        </button>
+        <div class="auth-footer">
+          <p>Already have an account? 
+            <a href="#" (click)="$event.preventDefault(); toggleLoginForm()">Login here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- Hero Section -->
+<section class="cognizant-hero" [@fadeInUp]="showHero() ? 'in' : 'void'">
+  <div class="cognizant-bg-pattern"></div>
+  <div class="cognizant-hero-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+  </div>
+  
+  <div class="container">
+    <div class="row align-items-center min-vh-100">
+      <div class="col-lg-6" [@slideIn]="showHero() ? 'in' : 'void'">
+        <div class="hero-content">
+          <div class="cognizant-badge mb-4">
+            <i class="fas fa-brain me-2"></i>
+            <span>AI-Powered Learning Platform</span>
+            <div class="badge-glow"></div>
+          </div>
+          
+          <h1 class="cognizant-hero-title">
+            Transform Learning with
+            <span class="cognizant-gradient-text">Smart Assessments</span>
+            <div class="title-underline"></div>
+          </h1>
+          
+          <p class="cognizant-hero-subtitle">
+            Empower your organization with Cognizant's next-generation assessment platform. 
+            Create intelligent quizzes, interactive surveys, and analyze performance to accelerate workforce development 
+            with enterprise-grade tools.
+          </p>
+          
+          <!-- Enhanced Stats with Icons -->
+          <div class="cognizant-stats-preview">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <span class="stat-number">99.9%</span>
+              <span class="stat-label">Uptime</span>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <span class="stat-number">2M+</span>
+              <span class="stat-label">Assessments</span>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-building"></i>
+              </div>
+              <span class="stat-number">500+</span>
+              <span class="stat-label">Enterprises</span>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <span class="stat-number">10M+</span>
+              <span class="stat-label">Learners</span>
+            </div>
+          </div>
+          
+          <div class="cognizant-cta-buttons">
+            <button class="cognizant-btn-hero-primary" (click)="navigateToQuizCreation()" [@pulse]="showHero() ? 'in' : 'void'">
+              <div class="btn-content">
+                <i class="fas fa-rocket me-2"></i>
+                <span>Create Your First Quiz</span>
+              </div>
+              <div class="btn-shine"></div>
+            </button>
+            <button class="cognizant-btn-hero-secondary" (click)="navigateToSurveyCreation()">
+              <i class="fas fa-poll me-2"></i>
+              <span>Build a Survey</span>
+            </button>
+            <button class="cognizant-btn-hero-tertiary" (click)="navigateToParticipant()">
+              <i class="fas fa-play me-2"></i>
+              <span>Join Assessment</span>
+            </button>
+          </div>
+          
+          <!-- Enhanced Role-based Access Cards -->
+          <div class="cognizant-role-cards">
+            <div class="role-card user-card enhanced" (click)="navigateToParticipant()">
+              <div class="role-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                  <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                </svg>
+              </div>
+              <div class="role-info">
+                <h6>Learner</h6>
+                <span>Join assessments & track progress</span>
+                <small>
+                  <i class="fas fa-bolt text-success me-1"></i>Instant access
+                  <i class="fab fa-angular text-primary mx-2"></i>
+                  <i class="fas fa-user-check text-info me-1"></i>No registration
+                </small>
+              </div>
+              <div class="role-badge success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                  <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+                </svg>
+              </div>
+            </div>
+            
+            <div class="role-card host-card enhanced" (click)="showHostOptions = !showHostOptions">
+              <div class="role-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                  <path d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z"/>
+                </svg>
+              </div>
+              <div class="role-info">
+                <h6>Educator</h6>
+                <span>Create & manage learning content</span>
+                <small>
+                  <i class="fas fa-tools text-primary me-1"></i>Full suite
+                  <i class="fab fa-angular text-danger mx-2"></i>
+                  <i class="fas fa-chart-line text-success me-1"></i>Analytics included
+                </small>
+              </div>
+              <div class="role-badge primary">
+                <i class="fas fa-chevron-down" [class.rotated]="showHostOptions"></i>
+              </div>
+            </div>
+            
+            <div class="role-card admin-card enhanced disabled" (click)="showAccessAlert('admin')">
+              <div class="role-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                  <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.5,9.2 9.5,10V11H14.5V10C14.5,9.2 13.8,8.2 12,8.2Z"/>
+                </svg>
+              </div>
+              <div class="role-info">
+                <h6>Enterprise Admin</h6>
+                <span>System configuration & control</span>
+                <small>
+                  <i class="fas fa-phone text-warning me-1"></i>Contact sales for access
+                  <i class="fab fa-angular text-primary ms-2"></i>
+                </small>
+              </div>
+              <div class="role-badge restricted">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                  <path d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div class="cognizant-trust-indicators">
+            <div class="trust-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Enterprise Security</span>
+            </div>
+            <div class="trust-item">
+              <i class="fas fa-award"></i>
+              <span>ISO 27001 Certified</span>
+            </div>
+            <div class="trust-item">
+              <i class="fas fa-globe"></i>
+              <span>Global Scale</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="cognizant-hero-visual">
+          <!-- Cognizant Dashboard Mockup -->
+          <div class="cognizant-dashboard">
+            <div class="dashboard-frame">
+              <div class="dashboard-header">
+                <div class="header-controls">
+                  <span class="control-dot"></span>
+                  <span class="control-dot"></span>
+                  <span class="control-dot"></span>
+                </div>
+                <span class="dashboard-title">Cognizant Learning Analytics</span>
+              </div>
+              
+              <div class="dashboard-content">
+                <div class="dashboard-nav">
+                  <div class="nav-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                  </div>
+                  <div class="nav-item">
+                    <i class="fas fa-quiz"></i>
+                    <span>Assessments</span>
+                  </div>
+                  <div class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Learners</span>
+                  </div>
+                </div>
+                
+                <div class="dashboard-main">
+                  <div class="metric-cards">
+                    <div class="metric-card">
+                      <div class="metric-value">92%</div>
+                      <div class="metric-label">Completion Rate</div>
+                      <div class="metric-trend up">
+                        <i class="fas fa-arrow-up"></i> 8%
+                      </div>
+                    </div>
+                    <div class="metric-card">
+                      <div class="metric-value">1,247</div>
+                      <div class="metric-label">Active Learners</div>
+                      <div class="metric-trend up">
+                        <i class="fas fa-arrow-up"></i> 15%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="chart-container">
+                    <div class="chart-bars">
+                      <div class="bar" style="height: 60%"></div>
+                      <div class="bar" style="height: 80%"></div>
+                      <div class="bar" style="height: 45%"></div>
+                      <div class="bar" style="height: 90%"></div>
+                      <div class="bar" style="height: 70%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Floating Tech Icons -->
+          <!-- <div class="cognizant-floating-tech">
+            <div class="tech-icon tech-1">
+              <i class="fab fa-angular"></i>
+            </div>
+            <div class="tech-icon tech-2">
+              <i class="fab fa-react"></i>
+            </div>
+            <div class="tech-icon tech-3">
+              <i class="fab fa-java"></i>
+            </div>
+            <div class="tech-icon tech-4">
+              <i class="fab fa-python"></i>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scroll Indicator -->
+  <div class="cognizant-scroll-indicator" (click)="scrollToSection('features')">
+    <div class="scroll-text">Discover More</div>
+    <div class="scroll-arrow">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </div>
+</section>
+
+<!-- Cognizant Features Section -->
+<section id="features" class="cognizant-features" [@fadeInUp]="showFeatures() ? 'in' : 'void'">
+  <div class="cognizant-section-bg">
+    <div class="bg-pattern"></div>
+  </div>
+  
+  <div class="container">
+    <div class="cognizant-section-header text-center">
+      <div class="section-badge">
+        <i class="fas fa-cogs me-2"></i>
+        <span>Enterprise Capabilities</span>
+      </div>
+      <h2 class="section-title">
+        Why Global Leaders Choose
+        <span class="cognizant-gradient-text">Cognizant</span>
+      </h2>
+      <p class="section-subtitle">
+        Comprehensive platform designed for enterprise scale, security, and performance
+      </p>
+    </div>
+    
+    <div class="row g-4 mb-5">
+      <div class="col-lg-4 col-md-6" *ngFor="let feature of features; let i = index">
+        <div class="cognizant-feature-card" [attr.data-delay]="i * 150">
+          <div class="feature-icon-wrapper">
+            <div class="icon-bg"></div>
+            <i [class]="feature.icon" class="feature-icon"></i>
+          </div>
+          <h5 class="feature-title">{{ feature.title }}</h5>
+          <p class="feature-description">{{ feature.description }}</p>
+          <div class="feature-link">
+            <span>Learn More</span>
+            <i class="fas fa-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cognizant Impact Section -->
+<section class="cognizant-impact">
+  <div class="impact-bg">
+    <div class="cognizant-wave">
+      <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#0066CC" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,208C1248,224,1344,192,1392,176L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
+      </svg>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="impact-title">Driving Measurable Impact</h2>
+      <p class="impact-subtitle">Trusted by global organizations to transform learning outcomes</p>
+    </div>
+    
+    <div class="row">
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="cognizant-stat-card">
+          <div class="stat-icon-bg">
+            <i class="fas fa-building stat-icon"></i>
+          </div>
+          <h3 class="stat-number">500+</h3>
+          <p class="stat-label">Enterprise Clients</p>
+          <div class="stat-trend positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>+25% YoY</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="cognizant-stat-card">
+          <div class="stat-icon-bg">
+            <i class="fas fa-users stat-icon"></i>
+          </div>
+          <h3 class="stat-number">2.5M+</h3>
+          <p class="stat-label">Active Learners</p>
+          <div class="stat-trend positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>+40% Growth</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="cognizant-stat-card">
+          <div class="stat-icon-bg">
+            <i class="fas fa-brain stat-icon"></i>
+          </div>
+          <h3 class="stat-number">85%</h3>
+          <p class="stat-label">Skill Improvement</p>
+          <div class="stat-trend positive">
+            <i class="fas fa-chart-line"></i>
+            <span>Proven Results</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="cognizant-stat-card">
+          <div class="stat-icon-bg">
+            <i class="fas fa-globe stat-icon"></i>
+          </div>
+          <h3 class="stat-number">50+</h3>
+          <p class="stat-label">Countries</p>
+          <div class="stat-trend positive">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Global Reach</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Client Testimonial -->
+    <div class="cognizant-testimonial">
+      <div class="testimonial-content">
+        <div class="testimonial-quote">
+          <i class="fas fa-quote-left"></i>
+          <p>
+            "Cognizant's quiz platform transformed our global training program. 
+            The analytics capabilities helped us identify skill gaps and improve our workforce 
+            development by 40% within the first quarter."
+          </p>
+        </div>
+        <div class="testimonial-author">
+          <div class="author-avatar">
+            <div class="avatar-placeholder"></div>
+          </div>
+          <div class="author-info">
+            <div class="author-name">Sarah Johnson</div>
+            <div class="author-title">Chief Learning Officer</div>
+            <div class="author-company">Global Tech Corp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cognizant CTA Section -->
+<section class="cognizant-cta">
+  <div class="cta-background">
+    <div class="cta-gradient"></div>
+    <div class="cta-pattern"></div>
+  </div>
+  
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="cta-content">
+          <div class="cta-badge">
+            <i class="fas fa-rocket me-2"></i>
+            <span>Ready to Transform Learning?</span>
+          </div>
+          
+          <h2 class="cta-title">
+            Join the Digital Learning Revolution
+          </h2>
+          
+          <p class="cta-description">
+            Partner with Cognizant to build a future-ready workforce. 
+            Our enterprise platform scales with your organization's growth and delivers measurable ROI.
+          </p>
+          
+          <div class="cta-benefits">
+            <div class="benefit-item">
+              <i class="fas fa-clock"></i>
+              <span>Deploy in 24 hours</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Enterprise-grade security</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-headset"></i>
+              <span>Dedicated support team</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="cta-actions">
+          <button class="cognizant-cta-primary" (click)="navigateToHost()">
+            <div class="btn-content">
+              <i class="fas fa-play"></i>
+              <span>Start Your Journey</span>
+            </div>
+            <div class="btn-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </button>
+          
+          <button class="cognizant-cta-secondary">
+            <i class="fas fa-calendar-check me-2"></i>
+            <span>Schedule Enterprise Demo</span>
+          </button>
+          
+          <div class="cta-trust">
+            <div class="trust-badges">
+              <div class="trust-badge">
+                <i class="fas fa-award"></i>
+                <span>ISO 27001</span>
+              </div>
+              <div class="trust-badge">
+                <i class="fas fa-users"></i>
+                <span>Fortune 500</span>
+              </div>
+              <div class="trust-badge">
+                <i class="fas fa-globe"></i>
+                <span>50+ Countries</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cognizant Footer -->
+<footer class="cognizant-footer">
+  <div class="container">
+    <div class="footer-content text-center py-4">
+      <div class="cognizant-brand-footer">
+        <div class="cognizant-logo">
+          <img src="/Cognizant_logo.png" alt="Cognizant Logo" class="cognizant-logo-img" />
+        </div>
+        <span class="brand-name">Cognizant Quiz Platform</span>
+      </div>
+      
+      <p class="footer-text">
+        Transforming learning experiences for enterprise organizations worldwide. 
+        Built with <i class="fas fa-heart text-danger"></i> by GENC Team.
+      </p>
+      
+      <div class="footer-links">
+        <a href="#" class="footer-link">
+          <i class="fas fa-shield-alt me-1"></i>Privacy Policy
+        </a>
+        <a href="#" class="footer-link">
+          <i class="fas fa-file-contract me-1"></i>Terms of Service
+        </a>
+        <a href="#" class="footer-link">
+          <i class="fas fa-headset me-1"></i>Support
+        </a>
+        <a href="#" class="footer-link">
+          <i class="fas fa-envelope me-1"></i>Contact
+        </a>
+      </div>
+      
+      <div class="footer-copyright">
+        <p>&copy; 2026 Cognizant Technology Solutions. All rights reserved.</p>
+        <p class="genc-credit">Made with <i class="fab fa-angular text-danger"></i> by GENC Team</p>
+      </div>
+    </div>
+  </div>
+</footer>
+</div>

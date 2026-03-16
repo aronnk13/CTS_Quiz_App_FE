@@ -1,0 +1,681 @@
+<!-- Professional Header -->
+<header class="dashboard-header">
+  <div class="container-fluid px-4">
+    <div class="d-flex align-items-center justify-content-between py-3">
+      <div class="header-brand d-flex align-items-center">
+        <!-- <button class="btn btn-outline-light btn-sm me-3" (click)="navigateBack()">
+          <i class="fas fa-arrow-left me-1"></i>
+          <span class="d-none d-md-inline">Back</span>
+        </button> -->
+        <div class="brand-info">
+          <div class="cognizant-logo d-flex align-items-center gap-3">
+            <div class="logo-section">
+              <img src="/Cognizant_logo.png" alt="Cognizant" class="cognizant-logo-img">
+            </div>
+            <div class="brand-text">
+              <h4 class="mb-0 text-white fw-bold brand-title">Host Dashboard</h4>
+              <div class="brand-subtitle">Quiz Learning Platform</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions d-flex align-items-center gap-2 gap-md-3">
+        <!-- Quiz Calendar Button -->
+        <button class="btn btn-outline-light btn-sm" (click)="toggleCalendar()" title="Quiz Calendar">
+          <i class="fas fa-calendar-alt me-1"></i>
+          <span class="d-none d-lg-inline">Calendar</span>
+        </button>
+        
+        
+        <!-- User Dropdown Menu -->
+        <div class="user-dropdown-container ms-auto">
+          <button class="user-dropdown-btn" (click)="toggleUserDropdown()" title="User Menu">
+            <span class="user-initial">{{ getHostInitial() }}</span>
+          </button>
+          <div class="user-dropdown-menu" [class.show]="showUserDropdown()">
+            <div class="dropdown-header">
+              <div class="user-avatar">{{ getHostInitial() }}</div>
+              <div class="user-details">
+                <div class="user-name">{{ hostName() }}</div>
+                <div class="user-role">Host</div>
+                <div class="user-datetime mt-1">
+                  <small class="opacity-75">{{ currentDay() }} - {{ currentDateTime() }}</small>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" (click)="handleDropdownAction('tutorial')">
+              <i class="fas fa-question-circle me-2"></i>
+              Tutorial
+            </button>
+            <button class="dropdown-item" (click)="handleDropdownAction('themes')">
+              <i class="fas fa-palette me-2"></i>
+              Themes
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-item" (click)="handleDropdownAction('logout')">
+              <i class="fas fa-sign-out-alt me-2"></i>
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Welcome Section -->
+<section class="welcome-section">
+  <div class="container-fluid px-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="welcome-card">
+          <div class="welcome-content">
+            <h1 class="welcome-title">Welcome, {{ hostName() }}!</h1>
+            <h3 class="welcome-subtitle">{{ welcomeMessage() }}</h3>
+            <p class="welcome-description">Create, manage, and deploy your learning content with our professional platform.</p>
+          </div>
+          <div class="welcome-illustration">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Statistics Cards -->
+
+          
+         
+     
+
+      <!-- Published Quizzes -->
+      
+
+      <!-- Total Questions -->
+      <!-- <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stat-card questions-card">
+          <div class="stat-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().totalQuestions }}</h3>
+            <p class="stat-label">Questions</p>
+          </div>
+        </div>
+      </div> -->
+   
+<!-- Statistics Cards -->
+<section class="stats-section">
+  <div class="container-fluid px-4">
+    <div class="row g-4">
+      <!-- Total Quizzes -->
+      <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+        <div class="stat-card quiz-card">
+          <div class="stat-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().totalQuizzes }}</h3>
+            <p class="stat-label">Total Quizzes</p>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Total Surveys -->
+      <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+        <div class="stat-card survey-card">
+          <div class="stat-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().totalSurveys }}</h3>
+            <p class="stat-label">Surveys</p>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Total Polls -->
+      <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+        <div class="stat-card poll-card">
+          <div class="stat-icon">
+            <i class="fas fa-poll"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().totalPolls }}</h3>
+            <p class="stat-label">Polls</p>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Draft Quizzes -->
+      <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+        <div class="stat-card draft-card">
+          <div class="stat-icon">
+            <i class="fas fa-edit"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().draftQuizzes }}</h3>
+            <p class="stat-label">Drafts</p>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Published Quizzes -->
+      <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+        <div class="stat-card published-card">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3 class="stat-number">{{ stats().publishedQuizzes }}</h3>
+            <p class="stat-label">Published</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Quick Actions -->
+<section class="actions-section">
+  <div class="container-fluid px-4">
+    <div class="section-header mb-4">
+      <h3 class="section-title">Quick Actions</h3>
+      <p class="section-subtitle">Get started with creating your learning content</p>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-6 col-md-6" *ngFor="let action of quickActions">
+        <div class="action-card" (click)="navigateToAction(action)">
+          <div class="action-background" [style.background]="action.gradient"></div>
+          <div class="action-content">
+            <div class="action-icon" [style.color]="action.color">
+              <i [class]="action.icon"></i>
+            </div>
+            <h4 class="action-title">{{ action.title }}</h4>
+            <p class="action-description">{{ action.description }}</p>
+            <div class="action-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Activity Section -->
+<section class="activity-section">
+  <div class="container-fluid px-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="activity-card">
+          <div class="activity-header">
+            <h4 class="activity-title">Recent Activity</h4>
+            <button class="btn btn-sm btn-outline-primary">View All</button>
+          </div>
+          <div class="activity-content">
+            <!-- Loading State -->
+            <div *ngIf="loadingActivities()" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading activities...</span>
+              </div>
+              <p class="text-muted mt-2">Loading recent activity...</p>
+            </div>
+
+            <!-- Activities List -->
+            <div *ngIf="!loadingActivities() && recentActivities().length > 0" class="activities-list">
+              <div 
+                *ngFor="let activity of recentActivities(); trackBy: trackByActivityId"
+                class="activity-item"
+              >
+                <div class="activity-icon">
+                  <i [class]="getActivityIcon(activity)"></i>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-main">
+                    <span class="activity-description">{{ activity.description }}</span>
+                    <span 
+                      class="activity-badge"
+                      [class]="'badge bg-' + getActivityColor(activity.activityType)"
+                    >
+                      {{ activity.activityType }}
+                    </span>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ getRelativeTime(activity.createdAt) }}
+                    </span>
+                    <span class="activity-type">
+                      <i class="fas fa-tag me-1"></i>
+                      {{ activity.entityType }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!loadingActivities() && recentActivities().length === 0" class="empty-state text-center py-5">
+              <i class="fas fa-history mb-3 text-muted" style="font-size: 3rem;"></i>
+              <h5 class="text-muted">No recent activity</h5>
+              <p class="text-muted">Start creating content to see your activity here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Templates Section -->
+<section class="templates-section py-5">
+  <div class="container-fluid px-4">
+    <!-- Render a compact template library summary on dashboard.
+         The full `TemplateComponent` is heavy and was rendering inline
+         (including its own top-right create button). Instead link to the
+         dedicated templates route so the library only loads when the user
+         intentionally opens it. -->
+    <div class="templates-summary-card themed-card p-4 d-flex align-items-center justify-content-between">
+      <div>
+        <h4 class="mb-1">Template Library</h4>
+        <p class="mb-0 text-muted">Browse professionally curated templates to quickly create quizzes. Click "Use Templates" to open the full library.</p>
+      </div>
+      <div>
+        <a class="btn btn-primary" routerLink="/template">Use Templates</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quiz Calendar Modal/Dropdown -->
+<div class="calendar-overlay" *ngIf="showCalendar()" (click)="toggleCalendar()">
+  <div class="calendar-popup themed-card" (click)="$event.stopPropagation()">
+    <div class="calendar-header">
+      <button class="btn-close" (click)="toggleCalendar()">&times;</button>
+      <h4 class="mb-0">Quiz Calendar</h4>
+    </div>
+    <div class="calendar-body">
+      <div class="quiz-calendar">
+        <!-- Month Navigation -->
+        <div class="month-nav d-flex justify-content-between align-items-center mb-3">
+          <button class="btn btn-sm btn-outline-primary" (click)="previousMonth()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <h5 class="mb-0">{{ getCurrentMonthYear() }}</h5>
+          <button class="btn btn-sm btn-outline-primary" (click)="nextMonth()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <!-- Calendar Grid -->
+        <div class="calendar-grid">
+          <div class="calendar-days">
+            <div class="day-header" *ngFor="let day of weekDays">{{ day }}</div>
+          </div>
+          <div class="calendar-dates">
+            <div 
+              *ngFor="let date of calendarDates()" 
+              class="calendar-date"
+              [class.other-month]="!date.currentMonth"
+              [class.has-quiz]="date.hasQuiz"
+              [class.today]="date.isToday"
+              [class.weekend]="date.isWeekend"
+              (click)="selectDate(date)"
+              (mouseenter)="showQuizInfo(date, $event)"
+              (mouseleave)="hideQuizInfo()"
+            >
+              {{ date.day }}
+              <div class="quiz-indicator" *ngIf="date.hasQuiz">
+                <span class="quiz-count">{{ date.quizCount }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quiz List for Selected Date -->
+        <div class="selected-date-quizzes" *ngIf="selectedDateQuizzes().length > 0">
+          <h6 class="mt-3 mb-2">Quizzes for {{ formatSelectedDate() }}</h6>
+          <div class="quiz-list">
+            <div 
+              *ngFor="let quiz of selectedDateQuizzes()" 
+              class="quiz-item"
+              (mouseenter)="showQuizTooltip(quiz, $event)"
+              (mouseleave)="hideQuizTooltip()"
+            >
+              <div class="quiz-info">
+                <div class="quiz-name">{{ quiz.name }}</div>
+                <div class="quiz-details">
+                  <small class="text-muted">
+                    <i class="fas fa-tag me-1"></i>{{ quiz.category }}
+                    <i class="fas fa-user ms-2 me-1"></i>{{ quiz.hostName }}
+                    <i class="fas fa-clock ms-2 me-1"></i>{{ quiz.time }}
+                  </small>
+                </div>
+              </div>
+              <div class="quiz-status">
+                <span class="badge" [class]="getQuizStatusClass(quiz.status)">{{ quiz.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz Tooltip -->
+<div class="quiz-tooltip" *ngIf="tooltipQuiz() && showTooltip()" [style]="getTooltipPosition()">
+  <div class="tooltip-header">
+    <strong>{{ tooltipQuiz()?.name }}</strong>
+  </div>
+  <div class="tooltip-body">
+    <div><i class="fas fa-tag me-2"></i>Category: {{ tooltipQuiz()?.category }}</div>
+    <div><i class="fas fa-user me-2"></i>Host: {{ tooltipQuiz()?.hostName }}</div>
+    <div><i class="fas fa-clock me-2"></i>Time: {{ tooltipQuiz()?.time }}</div>
+    <div *ngIf="tooltipQuiz()?.sessionCode"><i class="fas fa-code me-2"></i>Session: {{ tooltipQuiz()?.sessionCode }}</div>
+    <div><i class="fas fa-info-circle me-2"></i>Status: {{ tooltipQuiz()?.status }}</div>
+    <div *ngIf="tooltipQuiz()?.quizStatus"><i class="fas fa-check-circle me-2"></i>Quiz: {{ tooltipQuiz()?.quizStatus }}</div>
+    <div><i class="fas fa-users me-2"></i>Participants: {{ tooltipQuiz()?.participantCount }}</div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="loading()">
+  <div class="loading-spinner">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading dashboard...</p>
+  </div>
+</div>
+
+<!-- TUTORIAL OVERLAY -->
+@if (tutorialActive()) {
+<div class="tutorial-overlay">
+  <!-- Spotlight -->
+  @if (getSpotlightPosition(); as spotlightPos) {
+  <div class="tutorial-spotlight" 
+       [style.top]="spotlightPos.top"
+       [style.left]="spotlightPos.left"
+       [style.width]="spotlightPos.width"
+       [style.height]="spotlightPos.height">
+  </div>
+  }
+
+  <!-- Tutorial Popup -->
+  @if (getCurrentStep(); as step) {
+  <div class="tutorial-popup"
+       [style.top]="getPopupPosition()?.top || '50px'"
+       [style.left]="getPopupPosition()?.left || '50px'">
+    
+    <h4>{{ step.title }}</h4>
+    <p>{{ step.description }}</p>
+    
+    <div class="tutorial-controls">
+      @if (step.skipable) {
+      <button class="tutorial-skip" (click)="skipTutorial()">
+        Skip Tutorial
+      </button>
+      }
+      
+      <div class="tutorial-navigation">
+        @if (currentTutorialStep() > 0) {
+        <button class="tutorial-btn secondary" (click)="previousTutorialStep()">
+          Previous
+        </button>
+        }
+        
+        @if (currentTutorialStep() < tutorialSteps().length - 1) {
+        <button class="tutorial-btn" (click)="nextTutorialStep()">
+          Next
+        </button>
+        } @else {
+        <button class="tutorial-btn" (click)="skipTutorial()">
+          Finish
+        </button>
+        }
+      </div>
+    </div>
+    
+    <div class="tutorial-progress">
+      Step {{ currentTutorialStep() + 1 }} of {{ tutorialSteps().length }}
+      
+      <div class="tutorial-step-indicator">
+        @for (step of tutorialSteps(); track step.id; let i = $index) {
+        <div class="tutorial-step-dot" 
+             [class.active]="i === currentTutorialStep()"
+             [class.completed]="i < currentTutorialStep()">
+        </div>
+        }
+      </div>
+    </div>
+    
+  </div>
+  }
+</div>
+
+<!-- Template Creation Modal -->
+<div class="template-modal-overlay" *ngIf="showTemplateModal()" (click)="closeTemplateModal()">
+  <div class="template-modal-content" (click)="$event.stopPropagation()">
+    <div class="template-modal-header">
+      <h2 class="template-modal-title">Create New Template</h2>
+      <button class="template-modal-close" (click)="closeTemplateModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="template-modal-body">
+      <form (ngSubmit)="saveTemplate()">
+        <!-- Template Name Field -->
+        <div class="form-group mb-4">
+          <label for="templateName" class="form-label fw-bold">Template Name *</label>
+          <input 
+            type="text"
+            id="templateName"
+            class="form-control form-control-lg"
+            placeholder="Enter template name (e.g., Java Basics Quiz)"
+            [(ngModel)]="templateName"
+            name="templateName"
+            required>
+          <small class="form-text text-muted">Give your template a descriptive name</small>
+        </div>
+
+        <!-- Category Selection -->
+        <div class="form-group mb-4">
+          <label for="category" class="form-label fw-bold">Select Category *</label>
+          <select 
+            id="category"
+            class="form-control form-control-lg"
+            [(ngModel)]="selectedCategory"
+            (change)="onCategoryChange(selectedCategory())"
+            name="category"
+            required>
+            <option value="">-- Choose a Category --</option>
+            <option *ngFor="let cat of templateCategories" [value]="cat">{{ cat }}</option>
+          </select>
+          <small class="form-text text-muted">Select the category of questions for this template</small>
+        </div>
+
+        <!-- Questions Selection (appears after category selection) -->
+        <div class="form-group mb-4" *ngIf="selectedCategory()">
+          <label class="form-label fw-bold">Select Questions (Max 3) *</label>
+          <div *ngIf="loadingQuestions()" class="alert alert-info">
+            Loading questions for {{ selectedCategory() }}...
+          </div>
+          <div *ngIf="!loadingQuestions() && availableQuestions().length === 0" class="alert alert-warning">
+            No questions found for this category.
+          </div>
+          <div *ngIf="!loadingQuestions() && availableQuestions().length > 0" class="questions-container">
+            <div *ngFor="let question of availableQuestions()" class="question-checkbox mb-3">
+              <div class="form-check">
+                <input 
+                  type="checkbox"
+                  class="form-check-input"
+                  [id]="'q_' + question.questionId"
+                  [checked]="isQuestionSelected(question.questionId)"
+                  (change)="toggleQuestion(question.questionId)"
+                  [disabled]="selectedQuestions().size >= 3 && !isQuestionSelected(question.questionId)">
+                <label class="form-check-label" [for]="'q_' + question.questionId">
+                  {{ question.questionText }}
+                  <span class="badge badge-info ms-2">
+                    {{ question.category }} - Difficulty: {{ question.difficultyLevel }}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <small class="form-text text-muted d-block mt-2">
+            Selected: {{ selectedQuestions().size }}/3 questions
+          </small>
+        </div>
+
+        <!-- Display Questions for Viewing Template -->
+        <div class="form-group mb-4" *ngIf="currentTemplate() && displayedQuestions().length > 0">
+          <label class="form-label fw-bold">Template Questions</label>
+          <div class="questions-container">
+            <div *ngFor="let question of displayedQuestions()" class="question-display mb-3">
+              <div class="question-header">
+                <h6 class="question-text">{{ question.questionText }}</h6>
+                <span class="badge badge-info">
+                  {{ question.category }} - Difficulty: {{ question.difficultyLevel }}
+                </span>
+              </div>
+              <div class="question-options">
+                <div *ngFor="let option of question.options" class="option-item" [class.correct]="option.isCorrect">
+                  <span class="option-text">{{ option.optionText }}</span>
+                  <span *ngIf="option.isCorrect" class="badge bg-success ms-2">Correct</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Template Config/Description -->
+        <div class="form-group mb-4">
+          <label for="templateConfig" class="form-label fw-bold">Template Configuration *</label>
+          <textarea 
+            id="templateConfig"
+            class="form-control form-control-lg"
+            rows="4"
+            placeholder="Describe the template configuration and requirements..."
+            [(ngModel)]="templateConfig"
+            name="templateConfig"
+            required></textarea>
+          <small class="form-text text-muted">Add configuration details or notes about this template</small>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="template-modal-footer">
+          <button 
+            type="button" 
+            class="btn btn-outline-secondary btn-lg"
+            (click)="closeTemplateModal()"
+            [disabled]="isSubmitting()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary btn-lg"
+            [disabled]="isSubmitting()">
+            <i class="fas fa-check me-2"></i>
+            {{ isSubmitting() ? 'Publishing...' : 'Publish Template' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Template Modal -->
+<div class="template-modal-overlay" *ngIf="showPublishModal()" (click)="closePublishModal()">
+  <div class="template-modal-content" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="template-modal-header">
+      <h3 class="template-modal-title">
+        <i class="fas fa-rocket me-2"></i>Publish as Quiz
+      </h3>
+      <button 
+        type="button" 
+        class="template-modal-close" 
+        (click)="closePublishModal()"
+        [disabled]="isPublishing()">
+        &times;
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="template-modal-body">
+      <!-- Template Info -->
+      <div class="alert alert-info mb-4" *ngIf="selectedTemplateForPublish()">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Publishing Template:</strong> {{ selectedTemplateForPublish()?.templateName }}
+        <br>
+        <small class="mt-2 d-block">
+          <i class="fas fa-file me-1"></i>
+          Questions: {{ selectedTemplateForPublish()?.questionCount || 0 }}
+        </small>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="publishTemplate()">
+        <!-- Quiz Name Input -->
+        <div class="form-group">
+          <label for="quizName" class="form-label">
+            <i class="fas fa-heading me-1"></i>Quiz Name
+          </label>
+          <input
+            type="text"
+            id="quizName"
+            class="form-control form-control-lg"
+            [value]="publishQuizName()"
+            (input)="onQuizNameInput($event)"
+            name="quizName"
+            placeholder="Enter quiz name"
+            required
+            [disabled]="isPublishing()">
+          <small class="form-text text-muted">
+            This will be the name of the quiz created from this template
+          </small>
+        </div>
+
+        <!-- Info Section -->
+        <div class="alert alert-light border-start border-primary border-3 mb-4">
+          <small class="text-muted">
+            <i class="fas fa-check-circle me-2 text-success"></i>
+            A new quiz in <strong>Draft</strong> status will be created from this template.<br>
+            <i class="fas fa-eye me-2 text-info"></i>
+            You can preview and edit the quiz before publishing it.<br>
+            <i class="fas fa-clock me-2 text-warning"></i>
+            Template will remain unchanged and can be reused.
+          </small>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 justify-content-end">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-lg"
+            (click)="closePublishModal()"
+            [disabled]="isPublishing()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="isPublishing() || !publishQuizName()">
+            <i class="fas fa-rocket me-2"></i>
+            {{ isPublishing() ? 'Publishing...' : 'Create Quiz in Draft' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+}
+
+<!-- AI Chatbot Component -->
+<app-ai-chatbot></app-ai-chatbot>

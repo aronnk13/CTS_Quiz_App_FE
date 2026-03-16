@@ -1,0 +1,558 @@
+<div class="result-container">
+  <!-- Header -->
+  <div class="result-header">
+    <div>
+      <h2 class="mb-2">{{ pageTitle() }}</h2>
+      <p class="text-muted mb-0">Host ID: {{ currentHostId() }}</p>
+      <small class="text-muted">Debug: {{ debugInfo().selectedType }} - Q:{{ debugInfo().quizCount }} S:{{
+        debugInfo().surveyCount }} P:{{ debugInfo().pollCount }}</small>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <button class="btn btn-outline-light btn-sm" (click)="resetTutorial()">
+        🎯 Tutorial
+      </button>
+      <button class="btn btn-primary" (click)="loadAllContent()">
+        🔄 Refresh Data
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+  <app-loader type="cognizant" text="Loading analytics..."></app-loader>
+  } @else {
+  <!-- Analytics Cards -->
+  <div class="analytics-grid mb-4">
+    <div class="stat-card bg-primary">
+      <div class="stat-icon">📚</div>
+      <div class="stat-details">
+        <h3 class="stat-value">{{ analytics().totalQuizzes }}</h3>
+        <p class="stat-label">Total Quizzes</p>
+      </div>
+    </div>
+
+    <div class="stat-card bg-success">
+      <div class="stat-icon">❓</div>
+      <div class="stat-details">
+        <h3 class="stat-value">{{ analytics().totalQuestions }}</h3>
+        <p class="stat-label">Total Questions</p>
+      </div>
+    </div>
+
+    <div class="stat-card bg-warning">
+      <div class="stat-icon">📝</div>
+      <div class="stat-details">
+        <h3 class="stat-value">{{ analytics().draftQuizzes }}</h3>
+        <p class="stat-label">Draft Quizzes</p>
+      </div>
+    </div>
+
+    <div class="stat-card bg-info">
+      <div class="stat-icon">✅</div>
+      <div class="stat-details">
+        <h3 class="stat-value">{{ analytics().publishedQuizzes }}</h3>
+        <p class="stat-label">Published Quizzes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">📂 Category Breakdown</h5>
+    </div>
+    <div class="card-body">
+      @if (getCategoryList().length > 0) {
+      <div class="category-list">
+        @for (cat of getCategoryList(); track cat.name) {
+        <div class="category-item">
+          <span class="category-name">{{ cat.name }}</span>
+          <span class="badge bg-primary rounded-pill">{{ cat.count }} quiz{{ cat.count !== 1 ? 'zes' : '' }}</span>
+        </div>
+        }
+      </div>
+      } @else {
+      <p class="text-muted mb-0">No categories yet</p>
+      }
+    </div>
+  </div>
+
+  <!-- Content Management Section -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-light">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📋 Content Management</h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn" [class.btn-primary]="selectedContentType() === 'quizzes'"
+            [class.btn-outline-primary]="selectedContentType() !== 'quizzes'" (click)="selectContentType('quizzes')">
+            <i class="fas fa-brain me-1"></i>Quizzes ({{ analytics().totalQuizzes }})
+          </button>
+          <button type="button" class="btn" [class.btn-primary]="selectedContentType() === 'surveys'"
+            [class.btn-outline-primary]="selectedContentType() !== 'surveys'" (click)="selectContentType('surveys')">
+            <i class="fas fa-clipboard-list me-1"></i>Surveys ({{ analytics().totalSurveys }})
+          </button>
+          <button type="button" class="btn" [class.btn-primary]="selectedContentType() === 'polls'"
+            [class.btn-outline-primary]="selectedContentType() !== 'polls'" (click)="selectContentType('polls')">
+            <i class="fas fa-poll me-1"></i>Polls ({{ analytics().totalPolls }})
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Quizzes Tab -->
+      @if (selectedContentType() === 'quizzes') {
+      @if (hostQuizzes().length > 0) {
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Quiz Number</th>
+              <th>Quiz Name</th>
+              <th>Category</th>
+              <th>Questions</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Start Time</th>
+              <th>Publish</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (quiz of hostQuizzes(); track quiz.quizId) {
+            <tr>
+              <td><code class="text-primary">{{ quiz.quizNumber }}</code></td>
+              <td><strong>{{ quiz.quizName || '(Unnamed Quiz)' }}</strong></td>
+              <td><span class="badge bg-secondary">{{ quiz.category }}</span></td>
+              <td><span class="badge bg-info">{{ quiz.questionCount }}</span></td>
+              <td class="text-center">
+                <span class="badge" [class.bg-warning]="quiz.status.toLowerCase() === 'draft'"
+                  [class.bg-success]="quiz.status.toLowerCase() === 'active'"
+                  [class.bg-info]="quiz.status.toLowerCase() === 'completed'"
+                  [class.bg-primary]="quiz.status.toLowerCase() === 'live'">
+                  {{ quiz.status || 'N/A' }}
+                </span>
+              </td>
+              <td>{{ quiz.createdAt | date:'short' }}</td>
+              <td class="time-cell">
+                <input type="datetime-local" class="form-control form-control-sm time-input"
+                  [value]="startTimes[quiz.quizId] || ''" (change)="onStartTimeChange(quiz.quizId, $event)"
+                  placeholder="Start time"
+                  [disabled]="quiz.status.toLowerCase() === 'published' || quiz.status.toLowerCase() === 'active'"
+                  [id]="'start-' + quiz.quizId">
+              </td>
+              <td class="publish-cell">
+                @if (quiz.status.toLowerCase() === 'draft') {
+                <button class="btn btn-sm btn-success publish-btn" (click)="publishQuiz(quiz.quizNumber)">
+                  📤 Publish
+                </button>
+                } @else if (quiz.status.toLowerCase() === 'published' || quiz.status.toLowerCase() === 'active') {
+                <button class="btn btn-sm btn-primary enter-lobby-btn"
+                  (click)="enterLobby(quiz.quizNumber, quiz.quizId)" title="Enter Host Lobby">
+                  🎮 Enter Lobby
+                </button>
+                } @else if (quiz.status && (quiz.status.toLowerCase() === 'completed' || quiz.status.toUpperCase() ===
+                'COMPLETED')) {
+                <button class="btn btn-sm btn-warning republish-btn" (click)="republishQuiz(quiz.quizNumber)"
+                  [disabled]="!startTimes[quiz.quizId]"
+                  [title]="!startTimes[quiz.quizId] ? 'Set start time to republish' : 'Republish quiz with new schedule'">
+                  🔄 Republish
+                </button>
+                } @else {
+                <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="toggleQR(quiz.quizId, 'quiz')" title="Show QR Code">
+                    {{ showQRForQuizId() === quiz.quizId ? 'Hide QR' : 'Show QR' }}
+                  </button>
+                  @if (quiz.status.toLowerCase() === 'active' || quiz.status.toLowerCase() === 'published') {
+                  <button class="btn btn-outline-secondary" (click)="toggleLeaderboardPanel(quiz.quizId)"
+                    title="Leaderboard Settings">
+                    📊 Leaderboard
+                  </button>
+                  }
+                  @if (quiz.status.toLowerCase() === 'completed') {
+                  <button class="btn btn-outline-info" (click)="viewResults(quiz.quizNumber)"
+                    title="View Results & Analysis">
+                    📊 Results
+                  </button>
+                  }
+                </div>
+              </td>
+            </tr>
+
+            <!-- Leaderboard Settings Panel -->
+            @if (showLeaderboardPanel[quiz.quizId]) {
+            <tr>
+              <td colspan="9" class="leaderboard-panel">
+                <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                      📊 Leaderboard Settings - {{ quiz.quizName }}
+                      @if (!isAutoMode(quiz.quizNumber)) {
+                        <span class="badge bg-warning text-dark ms-2">🎮 MANUAL MODE - Controlled from Host Lobby</span>
+                      }
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    @if (!isAutoMode(quiz.quizNumber)) {
+                      <div class="alert alert-info mb-3">
+                        <strong>ℹ️ Manual Mode Active</strong><br>
+                        The host is currently in the lobby controlling the quiz. Leaderboard settings below only work in AUTO mode (when host is not in lobby).
+                      </div>
+                    }
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" [id]="'showAfterQuestion-' + quiz.quizId"
+                            [checked]="(leaderboardSettings[quiz.quizNumber] && leaderboardSettings[quiz.quizNumber].showAfterQuestion) || false"
+                            (change)="updateShowAfterQuestion(quiz.quizNumber, $any($event.target).checked)"
+                            [disabled]="!isAutoMode(quiz.quizNumber)">
+                          <label class="form-check-label" [for]="'showAfterQuestion-' + quiz.quizId">
+                            Show after each question
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" [id]="'showAtEnd-' + quiz.quizId"
+                            [checked]="(leaderboardSettings[quiz.quizNumber] && leaderboardSettings[quiz.quizNumber].showAtEndOnly) || false"
+                            (change)="updateShowAtEndOnly(quiz.quizNumber, $any($event.target).checked)"
+                            [disabled]="!isAutoMode(quiz.quizNumber)">
+                          <label class="form-check-label" [for]="'showAtEnd-' + quiz.quizId">
+                            Show at end only
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label small mb-1">⏱️ Display Duration (seconds)</label>
+                        <input type="number" class="form-control form-control-sm"
+                          [value]="leaderboardTimers[quiz.quizNumber] || 5"
+                          (change)="updateLeaderboardTimer(quiz.quizNumber, +$any($event.target).value)" 
+                          min="1"
+                          max="60" 
+                          placeholder="5"
+                          [disabled]="!isAutoMode(quiz.quizNumber)">
+                      </div>
+                    </div>
+                    <div class="row mt-2">
+                      <div class="col-12">
+                        <button class="btn btn-sm btn-primary" (click)="viewLeaderboardForQuiz(quiz.quizNumber)">
+                          👁️ View Leaderboard
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            }
+            @if (showQRForQuizId() === quiz.quizId) {
+            <tr>
+              <td colspan="9" class="qr-cell">
+                <app-qrcode [quizNumber]="quiz.quizNumber" [quizId]="quiz.quizId" [showActions]="false">
+                </app-qrcode>
+              </td>
+            </tr>
+            }
+            }
+          </tbody>
+        </table>
+      </div>
+      } @else {
+      <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 3rem;">{{ emptyStateConfig().icon }}</div>
+        <h5>{{ emptyStateConfig().title }}</h5>
+        <p class="text-muted">{{ emptyStateConfig().message }}</p>
+      </div>
+      }
+      }
+
+      <!-- Surveys Tab -->
+      @if (selectedContentType() === 'surveys') {
+      @if (hostSurveys().length > 0) {
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Session Code</th>
+              <th>Survey Name</th>
+              <th>Category</th>
+              <th>Questions</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Start Time</th>
+              <th>Publish</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (survey of hostSurveys(); track survey.surveyId) {
+            <tr>
+              <td><code class="text-primary">{{ survey.sessionCode || 'N/A' }}</code></td>
+              <td><strong>{{ survey.title }}</strong></td>
+              <td><span class="badge bg-secondary">{{ survey.category || 'General' }}</span></td>
+              <td><span class="badge bg-info">{{ survey.questions?.length || 0 }}</span></td>
+              <td class="text-center">
+                <span class="badge" [class.bg-warning]="survey.status.toLowerCase() === 'draft'"
+                  [class.bg-success]="survey.status.toLowerCase() === 'active'"
+                  [class.bg-info]="survey.status.toLowerCase() === 'completed'"
+                  [class.bg-primary]="survey.status.toLowerCase() === 'published'">
+                  {{ survey.status || 'Draft' }}
+                </span>
+              </td>
+              <td>{{ survey.createdAt | date:'short' }}</td>
+              <td class="time-cell">
+                <input type="datetime-local" class="form-control form-control-sm time-input"
+                  [value]="startTimes[survey.surveyId] || ''"
+                  (change)="onStartTimeChange(survey.surveyId, $event, 'survey')" placeholder="Start time"
+                  [disabled]="survey.status.toLowerCase() === 'published' || survey.status.toLowerCase() === 'active'"
+                  [id]="'start-survey-' + survey.surveyId">
+              </td>
+              <td class="publish-cell">
+                @if (survey.status.toLowerCase() === 'draft') {
+                <button class="btn btn-sm btn-success publish-btn" (click)="publishSurvey(survey.surveyId)">
+                  📤 Publish
+                </button>
+                } @else if (survey.status.toLowerCase() === 'published' || survey.status.toLowerCase() === 'active') {
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-primary enter-lobby-btn"
+                    (click)="enterLobby(survey.surveyId, survey.sessionId ?? 0, 'survey')" title="Enter Host Lobby">
+                    🎮 Enter Lobby
+                  </button>
+                  <button class="btn btn-sm btn-danger"
+                    (click)="completeSurvey(survey.surveyId)" title="End Survey">
+                    🏁 Complete
+                  </button>
+                </div>
+                } @else if (survey.status && (survey.status.toLowerCase() === 'completed' || survey.status.toUpperCase() === 'COMPLETED')) {
+                <button class="btn btn-sm btn-warning republish-btn" (click)="republishSurvey(survey.surveyId)"
+                  [disabled]="!startTimes[survey.surveyId]"
+                  [title]="!startTimes[survey.surveyId] ? 'Set start time to republish' : 'Republish survey with new schedule'">
+                  🔄 Republish
+                </button>
+                } @else {
+                <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="toggleQR(survey.surveyId, 'survey')"
+                    title="Show QR Code">
+                    {{ showQRForQuizId() === survey.surveyId && showQRType() === 'survey' ? 'Hide QR' : 'Show QR' }}
+                  </button>
+                  @if (survey.status.toLowerCase() === 'completed') {
+                  <button class="btn btn-outline-info" (click)="viewSurveyResults(survey.surveyId)"
+                    title="View Results">
+                    📊 Results
+                  </button>
+                  <button class="btn btn-outline-success"
+                    (click)="viewSurveyWordCloud(survey.surveyId, survey.sessionId || 0)" title="View Word Cloud">
+                    ☁️ Word Cloud
+                  </button>
+                  }
+                  <button class="btn btn-outline-info" title="View Survey Details" (click)="viewSurvey(survey.surveyId)">
+                    👁️ View
+                  </button>
+                  <button class="btn btn-outline-danger" title="Delete Survey" (click)="deleteSurvey(survey.surveyId)">
+                    🗑️ Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- QR Code Panel for Survey -->
+            @if (showQRForQuizId() === survey.surveyId && showQRType() === 'survey') {
+            <tr>
+              <td colspan="9" class="qr-cell">
+                <app-qrcode [quizNumber]="survey.sessionCode || ''" [quizId]="survey.surveyId"
+                  [showActions]="false">
+                </app-qrcode>
+              </td>
+            </tr>
+            }
+            }
+          </tbody>
+        </table>
+      </div>
+      } @else {
+      <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 3rem;">{{ emptyStateConfig().icon }}</div>
+        <h5>{{ emptyStateConfig().title }}</h5>
+        <p class="text-muted">{{ emptyStateConfig().message }}</p>
+      </div>
+      }
+      }
+
+      <!-- Polls Tab -->
+      @if (selectedContentType() === 'polls') {
+      @if (hostPolls().length > 0) {
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Session Code</th>
+              <th>Poll Name</th>
+              <th>Category</th>
+              <th>Options</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Start Time</th>
+              <th>Publish</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (poll of hostPolls(); track poll.pollId) {
+            <tr>
+              <td><code class="text-primary">{{ poll.sessionCode || 'N/A' }}</code></td>
+              <td><strong>{{ poll.pollTitle }}</strong></td>
+              <td><span class="badge bg-secondary">{{ poll.category || 'General' }}</span></td>
+              <td><span class="badge bg-info">{{ poll.options.length || 0 }}</span></td>
+              <td class="text-center">
+                <span class="badge" [class.bg-warning]="poll.pollStatus.toLowerCase() === 'draft'"
+                  [class.bg-success]="poll.pollStatus.toLowerCase() === 'active'"
+                  [class.bg-info]="poll.pollStatus.toLowerCase() === 'completed'"
+                  [class.bg-primary]="poll.pollStatus.toLowerCase() === 'published'">
+                  {{ poll.pollStatus || 'Draft' }}
+                </span>
+              </td>
+              <td>{{ poll.createdAt | date:'short' }}</td>
+              <td class="time-cell">
+                <input type="datetime-local" class="form-control form-control-sm time-input"
+                  [value]="startTimes[poll.pollId] || ''" (change)="onStartTimeChange(poll.pollId, $event, 'poll')"
+                  placeholder="Start time"
+                  [disabled]="poll.pollStatus.toLowerCase() === 'published' || poll.pollStatus.toLowerCase() === 'active'"
+                  [id]="'start-poll-' + poll.pollId">
+              </td>
+              <td class="publish-cell">
+                @if (poll.pollStatus.toLowerCase() === 'draft') {
+                <button class="btn btn-sm btn-success publish-btn" (click)="publishPoll(poll.pollId)">
+                  📤 Publish
+                </button>
+                } @else if (poll.pollStatus.toLowerCase() === 'published' || poll.pollStatus.toLowerCase() === 'active') {
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-primary enter-lobby-btn"
+                    (click)="enterLobby(poll.pollId, poll.sessionId, 'poll')" title="Enter Host Lobby">
+                    🎮 Enter Lobby
+                  </button>
+                  <button class="btn btn-sm btn-danger"
+                    (click)="completePoll(poll.pollId)" title="End Poll">
+                    🏁 Complete
+                  </button>
+                </div>
+                } @else if (poll.pollStatus && (poll.pollStatus.toLowerCase() === 'completed' || poll.pollStatus.toUpperCase() === 'COMPLETED')) {
+                <button class="btn btn-sm btn-warning republish-btn" (click)="republishPoll(poll.pollId)"
+                  [disabled]="!startTimes[poll.pollId]"
+                  [title]="!startTimes[poll.pollId] ? 'Set start time to republish' : 'Republish poll with new schedule'">
+                  🔄 Republish
+                </button>
+                } @else {
+                <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="toggleQR(poll.pollId, 'poll')" title="Show QR Code">
+                    {{ showQRForQuizId() === poll.pollId && showQRType() === 'poll' ? 'Hide QR' : 'Show QR' }}
+                  </button>
+                  @if (poll.pollStatus.toLowerCase() === 'completed') {
+                  <button class="btn btn-outline-info" (click)="viewPollResults(poll.pollId)" title="View Results">
+                    📊 Results
+                  </button>
+                  }
+                  <button class="btn btn-outline-info" title="View Poll Details" (click)="viewPoll(poll.pollId)">
+                    👁️ View
+                  </button>
+                  <button class="btn btn-outline-danger" title="Delete Poll" (click)="deletePoll(poll.pollId)">
+                    🗑️ Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- QR Code Panel for Poll -->
+            @if (showQRForQuizId() === poll.pollId && showQRType() === 'poll') {
+            <tr>
+              <td colspan="9" class="qr-cell">
+                <app-qrcode [quizNumber]="poll.sessionCode || ''" [quizId]="poll.pollId" [showActions]="false">
+                </app-qrcode>
+              </td>
+            </tr>
+            }
+            }
+          </tbody>
+        </table>
+      </div>
+      } @else {
+      <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 3rem;">{{ emptyStateConfig().icon }}</div>
+        <h5>{{ emptyStateConfig().title }}</h5>
+        <p class="text-muted">{{ emptyStateConfig().message }}</p>
+      </div>
+      }
+      }
+
+    </div>
+  </div>
+  }
+
+  <!-- TUTORIAL OVERLAY -->
+  @if (tutorialActive()) {
+  <div class="tutorial-overlay">
+    <!-- Spotlight -->
+    @if (getSpotlightPosition(); as spotlightPos) {
+    <div class="tutorial-spotlight" [style.top]="spotlightPos.top" [style.left]="spotlightPos.left"
+      [style.width]="spotlightPos.width" [style.height]="spotlightPos.height">
+    </div>
+    }
+
+    <!-- Tutorial Popup -->
+    @if (getCurrentStep(); as step) {
+    <div class="tutorial-popup" [style.top]="getPopupPosition()?.top || '50px'"
+      [style.left]="getPopupPosition()?.left || '50px'">
+
+      <h4>{{ step.title }}</h4>
+      <p>{{ step.description }}</p>
+
+      <div class="tutorial-controls">
+        @if (step.skipable) {
+        <button class="tutorial-skip" (click)="skipTutorial()">
+          Skip Tutorial
+        </button>
+        }
+
+        <div class="tutorial-navigation">
+          @if (currentTutorialStep() > 0) {
+          <button class="tutorial-btn secondary" (click)="previousTutorialStep()">
+            Previous
+          </button>
+          }
+
+          @if (currentTutorialStep() < tutorialSteps().length - 1) { <button class="tutorial-btn"
+            (click)="nextTutorialStep()">
+            Next
+            </button>
+            } @else {
+            <button class="tutorial-btn" (click)="skipTutorial()">
+              Finish
+            </button>
+            }
+        </div>
+      </div>
+
+      <div class="tutorial-progress">
+        Step {{ currentTutorialStep() + 1 }} of {{ tutorialSteps().length }}
+
+        <div class="tutorial-step-indicator">
+          @for (step of tutorialSteps(); track step.id; let i = $index) {
+          <div class="tutorial-step-dot" [class.active]="i === currentTutorialStep()"
+            [class.completed]="i < currentTutorialStep()">
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+    }
+  </div>
+  }

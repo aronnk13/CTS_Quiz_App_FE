@@ -1,0 +1,54 @@
+<div class="topn-leaderboard-container">
+  <div class="header">
+    <h2 class="title">🏆 Top {{ topN() }} Leaderboard</h2>
+    <button class="refresh-btn" (click)="refresh()" *ngIf="!autoRefresh()" aria-label="Refresh leaderboard">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="isLoading()" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="loading-text">Loading leaderboard...</p>
+  </div>
+
+  <div class="leaderboard-list" *ngIf="!isLoading() && leaderboard()">
+    <div 
+      *ngFor="let entry of displayedEntries(); let i = index"
+      class="leaderboard-entry"
+      [class.current-user]="isCurrentUser(entry)"
+      [attr.aria-current]="isCurrentUser(entry) ? 'true' : null"
+      [@slideIn]
+      [@rankChange]="getRankChangeState(entry)"
+      role="listitem"
+    >
+      <div class="rank-badge" aria-hidden="true">
+        <span class="rank-number">{{ getMedalEmoji(entry.rank) }}</span>
+        <span class="rank-change" *ngIf="entry.hasRankChange" [title]="getRankChangeTitle(entry)">
+          {{ getRankIcon(entry) }}
+        </span>
+      </div>
+
+      <div class="player-info">
+        <div class="player-name">
+          <span class="name-text">{{ entry.participantName }}</span>
+          <span class="you-badge" *ngIf="isCurrentUser(entry)" aria-label="You">YOU</span>
+        </div>
+
+        <div class="player-stats">
+          <span class="stat">✅ {{ entry.correctAnswers }}/{{ entry.totalQuestions }} ({{ getAccuracyPercent(entry) }}%)</span>
+          <span class="stat">⚡ {{ formatTime(entry.averageSpeedMs) }}</span>
+          <span class="streak-badge" *ngIf="entry.streakCorrect >= 3">🔥 {{ entry.streakCorrect }} streak</span>
+        </div>
+      </div>
+
+      <div class="score-display" aria-label="Score">
+        <div class="score-number">{{ entry.score }}</div>
+        <div class="score-label">points</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading() && displayedEntries().length === 0">
+    <p>No participants yet. Be the first to join!</p>
+  </div>
+</div>

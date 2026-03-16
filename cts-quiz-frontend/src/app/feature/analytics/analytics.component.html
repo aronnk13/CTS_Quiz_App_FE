@@ -1,0 +1,175 @@
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
+    
+  </header>
+
+  <!-- Filter Section - Always Visible, Horizontal Layout -->
+  <div class="filtering-section-wrapper">
+    <div class="filter-header">
+      <button 
+        class="export-pdf-btn" 
+        (click)="exportReportAsPDF()"
+        [disabled]="!hostFeedbackAnalytics || hostFeedbackAnalytics.totalResponses === 0"
+        title="Download complete report as PDF"
+        *ngIf="hostFeedbackAnalytics">
+        <span>📥</span> Download PDF Report
+      </button>
+    </div>
+
+    <!-- Host/Quiz Filtering Section - Horizontal Layout -->
+    <div class="filter-controls horizontal-filters">
+      <div class="filter-content">
+        <div class="filter-group">
+          <label for="hostSelect" class="filter-label">
+            <span class="label-icon">👥</span> Select Host
+          </label>
+          <div class="select-wrapper">
+            <select 
+              id="hostSelect" 
+              [(ngModel)]="selectedHostId" 
+              (change)="onHostSelected()"
+              [disabled]="loadingHosts || hosts.length === 0"
+              class="filter-select">
+              <option *ngIf="loadingHosts" value="">⏳ Loading hosts...</option>
+              <option *ngIf="!loadingHosts && hosts.length === 0" value="">📌 No hosts available</option>
+              <option *ngFor="let host of hosts" [value]="host.hostId">
+                {{ host.hostName }}
+              </option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="filter-group" *ngIf="selectedHostId">
+          <label for="quizSelect" class="filter-label">
+            <span class="label-icon">📚</span> Select Quiz
+          </label>
+          <div class="select-wrapper">
+            <select 
+              id="quizSelect" 
+              [(ngModel)]="selectedFilteredQuizId" 
+              (change)="onQuizSelected()"
+              [disabled]="loadingQuizzes || quizzes.length === 0"
+              class="filter-select">
+              <option *ngIf="loadingQuizzes" [value]="null">⏳ Loading quizzes...</option>
+              <option *ngIf="!loadingQuizzes && quizzes.length === 0" [value]="null">📌 No quizzes available</option>
+              <option *ngFor="let quiz of quizzes" [ngValue]="quiz.quizId">
+                {{ quiz.quizName }}
+              </option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button class="reset-btn" (click)="resetToDefaultView()">
+            <span>🔄</span> Reset View
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State with Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p class="loading-text">Loading analytics data...</p>
+  </div>
+
+  <!-- Main Content - Only show when we have host/quiz selected and data loaded -->
+  <div *ngIf="!isLoading && hostFeedbackAnalytics" class="main-content">
+    <!-- Empty State for No Feedback Data - Show this first if no responses -->
+    <div class="empty-state" *ngIf="hostFeedbackAnalytics.totalResponses === 0">
+      <div class="empty-icon">📭</div>
+      <h3>No Feedback Yet</h3>
+      <p>No participants have submitted feedback for this quiz. Feedback will appear here once participants complete and rate the quiz.</p>
+    </div>
+
+    <!-- Show all content only when there is feedback data -->
+    <ng-container *ngIf="hostFeedbackAnalytics.totalResponses > 0">
+      <!-- Drag and Drop Toggle Button -->
+      <div class="drag-drop-toggle">
+        <button class="drag-toggle-btn" (click)="toggleDragMode()" [class.active]="isDragEnabled">
+          <span>{{ isDragEnabled ? '🔒' : '↕️' }}</span>
+          <span class="toggle-text">{{ isDragEnabled ? 'Lock Layout' : 'Rearrange Cards' }}</span>
+        </button>
+      </div>
+
+      <!-- Stats Grid with Drag and Drop -->
+      <div class="stats-grid" 
+        cdkDropList
+        cdkDropListData="stats"
+        [cdkDropListDisabled]="!isDragEnabled"
+        (cdkDropListDropped)="onStatCardDrop($event)">
+        <div class="stat-card" 
+          *ngFor="let stat of stats; let i = index" 
+          [ngClass]="'stat-' + i"
+          cdkDrag
+          [cdkDragDisabled]="!isDragEnabled"
+          [cdkDragData]="stat"
+          [cdkDragPreviewClass]="'cdk-drag-preview'">
+          <div class="stat-icon">{{ getStatIcon(stat.title) }}</div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stat.value }}</div>
+            <div class="stat-title">{{ stat.title }}</div>
+          </div>
+          <div class="drag-indicator" *ngIf="isDragEnabled">
+            <span class="drag-handle">⋮⋮</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Section -->
+      <div class="insights-section" *ngIf="hostFeedbackAnalytics">
+        <div class="insights-header">
+          <h3>💡 Key Insights</h3>
+          <div class="host-display">👤 {{ hostFeedbackAnalytics.hostName }}</div>
+        </div>
+        <div class="insights-grid">
+          <div class="insight-card" [ngClass]="getSentimentClass()">
+            <div class="insight-label">Overall Sentiment</div>
+            <div class="insight-value">{{ getSentiment() }}</div>
+          </div>
+          <div class="insight-card insight-positive">
+            <div class="insight-label">Positive Feedback</div>
+            <div class="insight-value">{{ getPositiveFeedbackPercentage() }}%</div>
+          </div>
+          <div class="insight-card insight-neutral">
+            <div class="insight-label">Neutral Feedback</div>
+            <div class="insight-value">{{ getNeutralFeedbackPercentage() }}%</div>
+          </div>
+          <div class="insight-card insight-negative">
+            <div class="insight-label">Needs Improvement</div>
+            <div class="insight-value">{{ getNegativeFeedbackPercentage() }}%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        <!-- Emoji Distribution Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>😊 Participant Reactions</h3>
+            <p class="chart-subtitle">Emoji feedback distribution</p>
+          </div>
+          <div class="chart-container">
+            <canvas #emojiChartCanvas></canvas>
+          </div>
+        </div>
+
+        <!-- Rating Distribution Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>⭐ Rating Breakdown</h3>
+            <p class="chart-subtitle">Participants by rating</p>
+          </div>
+          <div class="chart-container">
+            <canvas #completionChartCanvas></canvas>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

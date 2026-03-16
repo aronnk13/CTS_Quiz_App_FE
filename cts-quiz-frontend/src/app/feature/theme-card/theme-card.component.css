@@ -1,0 +1,173 @@
+/* .theme-card {
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.theme-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.12);
+}
+
+.preview {
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+  background-size: cover;
+  background-position: center;
+}
+
+.overlay {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 100%);
+}
+
+.name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: inherit;
+}
+
+.hint {
+  font-size: 12px;
+  opacity: 0.9;
+  color: inherit;
+} */
+
+.card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  z-index: 2;
+  will-change: transform, box-shadow;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.preview {
+  height: 110px;
+  width: 100%;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text-color, #111);
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  position: relative;
+  z-index: 10;
+}
+
+.edit-btn {
+  background: #5352ed;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.edit-btn:hover {
+  background: #3742fa;
+  transform: scale(1.1);
+}
+
+.edit-btn:active {
+  transform: scale(0.95);
+}
+
+.delete-btn {
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.delete-btn:hover {
+  background: #ff3838;
+  transform: scale(1.1);
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
+}
+
+

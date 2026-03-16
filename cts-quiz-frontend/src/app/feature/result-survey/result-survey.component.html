@@ -1,0 +1,91 @@
+<!-- ===== Standalone Analytics Page ===== -->
+<div class="survey-analytics-container" *ngIf="!isQuestionWise; else compactTpl">
+  <nav class="analytics-navbar">
+    <div class="navbar-content">
+      <h1 class="analytics-title">📊 Survey Analytics</h1>
+      <button class="export-btn" (click)="exportAnalytics()">📥 Export</button>
+    </div>
+  </nav>
+
+  @if (loading()) {
+    <div class="loading-overlay"><div class="spinner"></div><p>Loading survey analytics...</p></div>
+  }
+
+  <div class="analytics-cards">
+    <div class="analytics-card card-questions"><div class="card-icon">📝</div><div class="card-content"><h3>{{ totalQuestions() }}</h3><p>Total Questions</p></div></div>
+    <div class="analytics-card card-participants"><div class="card-icon">👥</div><div class="card-content"><h3>{{ totalParticipants() }}</h3><p>Total Participants</p></div></div>
+    <div class="analytics-card card-published"><div class="card-icon">📅</div><div class="card-content"><h3>{{ publishedDate() }}</h3><p>Published Date</p></div></div>
+    <div class="analytics-card card-votes"><div class="card-icon">🗳️</div><div class="card-content"><h3>{{ totalVotes() }}</h3><p>Total Votes</p></div></div>
+  </div>
+
+  <div class="search-section">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search questions..." [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" (keyup.enter)="searchQuestions()" />
+      <button class="search-btn" (click)="searchQuestions()">🔍 Search</button>
+    </div>
+  </div>
+
+  <div class="question-analytics-section">
+    <h2 class="section-title">📈 Question-wise Analytics</h2>
+    <div class="table-container">
+      <table class="analytics-table">
+        <thead><tr><th>Question #</th><th>Question</th><th>Analytics</th></tr></thead>
+        <tbody>
+          @for (q of filteredQuestions(); track q.surveyQuestionId) {
+            <tr>
+              <td class="question-number"><span class="q-badge">Q{{ q.questionOrder }}</span></td>
+              <td class="question-text">{{ q.questionText }}</td>
+              <td class="analytics-actions">
+                <div class="action-group">
+                  <button class="view-btn" (click)="toggleChartView(q.surveyQuestionId)">{{ activeQuestionId() === q.surveyQuestionId ? '👁️ Hide' : '👁️ View' }}</button>
+                  <select class="chart-type-select" [(ngModel)]="selectedChartTypes[q.surveyQuestionId]" (change)="onChartTypeChange(q.surveyQuestionId)" [disabled]="activeQuestionId() !== q.surveyQuestionId">
+                    <option value="pie">🥧 Pie Chart</option>
+                    <option value="line">📈 Line Graph</option>
+                    <option value="doughnut">🍩 Donut Chart</option>
+                    <option value="wordcloud">☁️ Word Cloud</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+            @if (activeQuestionId() === q.surveyQuestionId) {
+              <tr class="chart-row">
+                <td colspan="3">
+                  <div class="chart-container">
+                    @if (selectedChartTypes[q.surveyQuestionId] === 'wordcloud') {
+                      <div class="wordcloud-wrapper"><canvas #wordcloudCanvas [id]="'wordcloud-' + q.surveyQuestionId" class="wordcloud-canvas"></canvas></div>
+                    } @else {
+                      <div class="chart-wrapper"><canvas [id]="'chart-' + q.surveyQuestionId" class="analytics-chart"></canvas></div>
+                    }
+                    <button class="download-chart-btn" (click)="downloadChart(q.surveyQuestionId)">💾 Download Chart</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Compact Question-wise Overlay ===== -->
+<ng-template #compactTpl>
+  <div class="compact-result-container">
+    @if (loading()) {
+      <div class="loading-overlay"><div class="spinner"></div><p>Loading survey results…</p></div>
+    } @else {
+      <div class="compact-card">
+        <div class="compact-header">
+          <h3 class="compact-title">{{ questionAnalytics[questionId!].questionText || 'Survey Question' }}</h3>
+          <span class="compact-total">🗳️ {{ questionAnalytics[questionId!].totalResponses || 0 }} responses</span>
+        </div>
+        <div class="compact-chart-wrapper">
+          <canvas [id]="'compact-chart-' + questionId" class="analytics-chart"></canvas>
+        </div>
+        <div class="compact-actions">
+          <button class="download-chart-btn" (click)="downloadChart(questionId!)">💾 Download Chart</button>
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

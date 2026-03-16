@@ -1,0 +1,452 @@
+<!-- Host Lobby - Cognizant-styled, impactful and accessible -->
+<div class="host-lobby-container impact">
+  <!-- Header Section -->
+  <header class="lobby-header">
+    <div class="header-content">
+      <!-- Left: Title + Session Details -->
+      <div class="session-info">
+        <h1 class="lobby-title" aria-label="Host Control Center">🎮 HOST CONTROL CENTER</h1>
+
+        <div class="session-details">
+          <div class="session-code-display" aria-label="Current session code">
+            <span class="label">Session:</span>
+            <span class="code">{{ sessionCode() }}</span>
+          </div>
+
+          <div class="quiz-name" aria-live="polite">
+            {{ sessionData()?.quizName || 'Loading...' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Controls -->
+      <div class="header-controls">
+        <!-- Mode Toggle -->
+        <button
+          class="mode-toggle-btn"
+          (click)="toggleMode()"
+          [class.manual]="mode() === 'manual'"
+          [class.auto]="mode() === 'auto'"
+          [attr.aria-pressed]="mode() === 'auto'"
+          aria-label="Toggle between Manual and Auto mode"
+        >
+          {{ mode() === 'manual' ? '🎮 MANUAL MODE' : '🤖 AUTO MODE' }}
+        </button>
+
+        <!-- Connection Status -->
+        <div
+          class="connection-status"
+          [class.connected]="connectionStatus() === 'connected'"
+          [class.connecting]="connectionStatus() === 'connecting'"
+          [class.disconnected]="connectionStatus() === 'disconnected'"
+          role="status"
+          aria-live="polite"
+          aria-label="Connection status"
+        >
+          <span class="status-dot"></span>
+          <span class="status-text">{{ connectionStatus() | uppercase }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Waiting Room -->
+  @if (waitingForStart()) {
+    <div class="waiting-room">
+      <div class="waiting-content">
+        <div class="waiting-icon" aria-hidden="true">⏰</div>
+        <h2>Waiting Room</h2>
+        <p class="waiting-message">Quiz will start in:</p>
+
+        <div class="countdown-timer" role="timer" aria-live="polite">
+          {{ countdownDisplay() }}
+        </div>
+
+        <div class="waiting-stats">
+          <div class="stat-item" aria-label="Participants joined count">
+            <span class="stat-icon" aria-hidden="true">👥</span>
+            <span class="stat-value">{{ participantProgress().totalParticipants }}</span>
+            <span class="stat-label">Participants Joined</span>
+          </div>
+
+          <div class="stat-item" aria-label="Total questions ready">
+            <span class="stat-icon" aria-hidden="true">📝</span>
+            <span class="stat-value">{{ totalQuestions() }}</span>
+            <span class="stat-label">Questions Ready</span>
+          </div>
+        </div>
+
+        @if (mode() === 'manual') {
+          <button class="force-start-btn" (click)="forceStartQuiz()" aria-label="Force start the quiz now">
+            🚀 Force Start Quiz Now
+          </button>
+          <p class="manual-hint">In manual mode, you can start the quiz anytime</p>
+        } @else {
+          <p class="auto-hint">Auto mode: Quiz will start automatically at scheduled time</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Active Quiz Panel -->
+  @if (quizStarted() && !waitingForStart()) {
+    <!-- End Quiz Button - Fixed Top Right Corner -->
+    <button
+      class="end-quiz-btn-fixed"
+      (click)="manualEndQuiz()"
+      [disabled]="quizEnded()"
+      [attr.aria-disabled]="quizEnded()"
+      aria-label="End quiz"
+      title="End Quiz"
+    >
+      🛑 End Quiz
+    </button>
+
+    <div class="control-panel-grid">
+      <!-- Left Sidebar: Participants -->
+      <aside class="participants-sidebar" aria-label="Participants list">
+        <div class="sidebar-header-fancy">
+          <div class="header-content">
+            <div class="header-icon" aria-hidden="true">👥</div>
+            <div class="header-text">
+              <h3>Participants</h3>
+              <span class="live-indicator"><span class="pulse-dot"></span> LIVE</span>
+            </div>
+          </div>
+          <div class="participant-count-badge" aria-label="Participant count">
+            {{ participantList().length }}
+          </div>
+        </div>
+
+        <div class="participants-scroll">
+          @for (participant of participantList(); track participant.participantId; let i = $index) {
+            <div
+              class="participant-card-fancy animate__animated animate__fadeInLeft"
+              [class.submitted]="participant.hasSubmittedCurrentQuestion"
+              [class.rank-1]="i === 0"
+              [class.rank-2]="i === 1"
+              [class.rank-3]="i === 2"
+              [style.animation-delay]="(i * 0.05) + 's'"
+              [attr.aria-label]="'Participant ' + participant.nickname + ', rank ' + (i + 1)"
+            >
+              <!-- Rank Badge -->
+              <div class="rank-position" aria-hidden="true">
+                @if (i === 0) {
+                  <span class="medal gold">🥇</span>
+                } @else if (i === 1) {
+                  <span class="medal silver">🥈</span>
+                } @else if (i === 2) {
+                  <span class="medal bronze">🥉</span>
+                } @else {
+                  <span class="rank-number">#{{ i + 1 }}</span>
+                }
+              </div>
+
+              <!-- Avatar -->
+              <div class="participant-avatar-fancy" [class.active]="participant.hasSubmittedCurrentQuestion">
+                <div class="avatar-ring" aria-hidden="true"></div>
+                <div class="avatar-content" aria-hidden="true">
+                  {{ participant.nickname.charAt(0).toUpperCase() }}
+                </div>
+                @if (participant.hasSubmittedCurrentQuestion) {
+                  <div class="status-indicator submitted" title="Submitted">✓</div>
+                } @else {
+                  <div class="status-indicator pending" title="Pending">⏱</div>
+                }
+              </div>
+
+              <!-- Details -->
+              <div class="participant-details">
+                <div class="participant-nickname" title="{{ participant.nickname }}">
+                  {{ participant.nickname }}
+                </div>
+                <div class="participant-score-row">
+                  <span class="points-display" aria-label="Total points">
+                    <span class="points-icon" aria-hidden="true">⭐</span>
+                    <span class="points-value">{{ participant.totalScore }}</span>
+                    <span class="points-label">pts</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Activity pulse -->
+              <div
+                class="activity-pulse"
+                [class.active]="participant.hasSubmittedCurrentQuestion"
+                [attr.title]="participant.hasSubmittedCurrentQuestion ? 'Submitted' : 'Waiting'"
+              ></div>
+            </div>
+          } @empty {
+            <div class="no-participants-fancy">
+              <div class="empty-icon" aria-hidden="true">👥</div>
+              <p class="empty-title">No participants yet</p>
+              <p class="empty-hint">Participants will appear here once they join</p>
+            </div>
+          }
+        </div>
+      </aside>
+
+      <!-- Center Content -->
+      <main class="center-content" aria-label="Question and stats">
+        <!-- Current Question -->
+        <div class="current-question-card">
+          <div class="question-header">
+            <h3>📝 Current Question</h3>
+            <span class="question-counter" aria-label="Question position">
+              {{ currentQuestionNumber() }} / {{ totalQuestions() }}
+            </span>
+          </div>
+
+          <div class="question-body">
+            <p class="question-text">
+              {{ currentQuestionText() }}
+            </p>
+
+            <div class="question-timer-display" role="timer" aria-live="polite">
+              <span class="timer-icon" aria-hidden="true">⏱️</span>
+              <span class="timer-value" [attr.aria-label]="'Time remaining ' + timerDisplay()">
+                {{ timerDisplay() }}
+              </span>
+
+              <div class="timer-bar-wrapper" aria-label="Time progress">
+                <div
+                  class="timer-bar"
+                  [style.width.%]="timerProgress()"
+                  [class.warning]="timerProgress() < 30"
+                  [class.critical]="timerProgress() < 10"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <!-- Participant Activity -->
+          <div class="stat-card">
+            <div class="card-header">
+              <span class="card-icon" aria-hidden="true">👥</span>
+              <h3>Participant Activity</h3>
+            </div>
+            <div class="card-body">
+              <div class="stat-value" aria-label="Submitted answers">
+                {{ participantProgress().submittedCount }} / {{ participantProgress().totalParticipants }}
+              </div>
+              <div class="stat-label">Submitted Answers</div>
+
+              <div class="progress-bar-container" aria-label="Submission progress">
+                <div class="progress-bar" [style.width.%]="progressPercentage()">
+                  <span class="progress-text">{{ progressPercentage() }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Status -->
+          <div class="stat-card">
+            <div class="card-header">
+              <span class="card-icon" aria-hidden="true">📊</span>
+              <h3>Quiz Status</h3>
+            </div>
+            <div class="card-body">
+              <div
+                class="status-badge"
+                [class.active]="!quizEnded()"
+                [class.ended]="quizEnded()"
+                [attr.aria-label]="quizEnded() ? 'Quiz ended' : 'Quiz live'"
+              >
+                {{ quizEnded() ? '🏁 ENDED' : '🔴 LIVE' }}
+              </div>
+
+              <div class="leaderboard-status">
+                <span class="toggle-label">Leaderboard:</span>
+                <span
+                  class="toggle-status"
+                  [class.visible]="leaderboardVisible()"
+                  [attr.aria-label]="leaderboardVisible() ? 'Leaderboard visible' : 'Leaderboard hidden'"
+                >
+                  {{ leaderboardVisible() ? '👁️ VISIBLE' : '🔒 HIDDEN' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Sidebar: Manual Controls -->
+      <aside class="controls-sidebar" aria-label="Controls">
+        @if (mode() === 'manual') {
+          <div class="controls-header">
+            <h3>🎮 Controls</h3>
+          </div>
+
+          <div class="controls-scroll">
+            <!-- Show Leaderboard Controls ONLY for Quizzes -->
+            @if (sessionType() === 'quiz') {
+              <!-- Interactive Leaderboard Modes -->
+              <div class="control-section">
+                <h4 class="section-title">🎮 Interactive Leaderboards</h4>
+
+                <div class="toggle-item">
+                  <label class="toggle-label-text" for="toggle-topn">Dynamic Top-N</label>
+                  <button
+                    id="toggle-topn"
+                    class="toggle-switch"
+                    [class.active]="showTopNLeaderboard()"
+                    (click)="toggleTopNLeaderboard()"
+                    [disabled]="quizEnded()"
+                    [attr.aria-pressed]="showTopNLeaderboard()"
+                    aria-label="Toggle Dynamic Top-N leaderboard"
+                  >
+                    <span class="toggle-slider"></span>
+                  </button>
+                </div>
+
+                <div class="toggle-item">
+                  <label class="toggle-label-text" for="toggle-progressive">Progressive (Streaks)</label>
+                  <button
+                    id="toggle-progressive"
+                    class="toggle-switch"
+                    [class.active]="showProgressiveLeaderboard()"
+                    (click)="toggleProgressiveLeaderboard()"
+                    [disabled]="quizEnded()"
+                    [attr.aria-pressed]="showProgressiveLeaderboard()"
+                    aria-label="Toggle Progressive leaderboard"
+                  >
+                    <span class="toggle-slider"></span>
+                  </button>
+                </div>
+
+                <div class="toggle-item">
+                  <label class="toggle-label-text" for="toggle-category">Category Champions</label>
+                  <button
+                    id="toggle-category"
+                    class="toggle-switch"
+                    [class.active]="showCategoryLeaderboard()"
+                    (click)="toggleCategoryLeaderboard()"
+                    [disabled]="quizEnded()"
+                    [attr.aria-pressed]="showCategoryLeaderboard()"
+                    aria-label="Toggle Category leaderboard"
+                  >
+                    <span class="toggle-slider"></span>
+                  </button>
+                </div>
+
+                @if (selectedLeaderboardMode()) {
+                  <button
+                    class="control-btn-primary"
+                    (click)="viewInteractiveLeaderboard()"
+                    style="margin-top: 10px;"
+                    aria-label="View interactive leaderboard for host"
+                    title="View leaderboard (Host view only)"
+                  >
+                    @if (selectedLeaderboardMode()) {
+                      👁️ View {{ selectedLeaderboardMode() | titlecase }} Leaderboard
+                    } @else {
+                      📊 View Option Bar Graph
+                    }
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Next Question Button (Manual Navigation) -->
+            @if (!quizEnded()) {
+              <div class="control-section">
+                <button
+                  class="control-btn-primary"
+                  (click)="goToNextQuestion(false)"
+                  [disabled]="currentQuestionNumber() >= totalQuestions()"
+                  aria-label="Go to next question"
+                >
+                  ➡️ Next Question
+                </button>
+                <p class="control-hint">
+                  Question {{ currentQuestionNumber() }} / {{ totalQuestions() }}
+                </p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="auto-mode-info">
+            <div class="info-card">
+              <span class="info-icon" aria-hidden="true">🤖</span>
+              <h3>Auto Mode</h3>
+              <p>Quiz running automatically</p>
+            </div>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+
+  <!-- Leaderboard/Option Bar Graph Overlay -->
+  @if (showInteractiveOverlay() && interactiveOverlayData()) {
+    <div class="interactive-overlay" role="dialog" aria-modal="true">
+      <div class="interactive-card">
+        <div class="interactive-header">
+          @if (interactiveOverlayType() === 'option-bar') {
+            <h2>📊 Answer Distribution</h2>
+          }
+          @else if (interactiveOverlayType() === 'topn') {
+            <h2>🏆 Top 10 Leaderboard</h2>
+          }
+          @else if (interactiveOverlayType() === 'podium') {
+            <h2>🥇 Final Podium</h2>
+          }
+          @else if (interactiveOverlayType() === 'progressive') {
+            <h2>📈 Progressive Leaderboard</h2>
+          }
+          @else if (interactiveOverlayType() === 'category') {
+            <h2>📂 Category Leaderboard</h2>
+          }
+          <button class="close-btn-interactive" (click)="closeInteractiveOverlay()" aria-label="Close overlay">✕</button>
+        </div>
+
+        <div class="interactive-content">
+          @if (interactiveOverlayType() === 'option-bar') {
+            <app-option-bargraph
+              [questionId]="currentQuestionId"
+              [sessionId]="sessionId"
+              [optionCountsData]="interactiveOverlayData()"
+              [overlayMode]="true"
+            >
+            </app-option-bargraph>
+          }
+          @else if (interactiveOverlayType() === 'topn') {
+            <app-leaderboard-topn
+              [sessionId]="sessionId"
+              [topNData]="interactiveOverlayData()"
+              [overlayMode]="true"
+            >
+            </app-leaderboard-topn>
+          }
+          @else if (interactiveOverlayType() === 'podium') {
+            <app-leaderboard-podium
+              [sessionId]="sessionId"
+              [podiumData]="interactiveOverlayData()"
+              [overlayMode]="true"
+            >
+            </app-leaderboard-podium>
+          }
+          @else if (interactiveOverlayType() === 'progressive') {
+            <app-leaderboard-progressive
+              [sessionId]="sessionId"
+              [progressiveData]="interactiveOverlayData()"
+              [overlayMode]="true"
+            >
+            </app-leaderboard-progressive>
+          }
+          @else if (interactiveOverlayType() === 'category') {
+            <app-leaderboard-category
+              [sessionId]="sessionId"
+              [categoryData]="interactiveOverlayData()"
+              [overlayMode]="true"
+            >
+            </app-leaderboard-category>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

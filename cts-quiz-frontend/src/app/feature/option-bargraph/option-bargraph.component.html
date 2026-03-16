@@ -1,0 +1,51 @@
+<div class="bargraph-container" *ngIf="optionData()">
+  <div class="header">
+    <div class="left">
+      <h2 class="question-text">{{ optionData()?.questionText }}</h2>
+      <div class="meta">
+        <span class="response-count" aria-live="polite">📊 {{ optionData()?.totalResponses }} responses</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="refresh-btn" (click)="refresh()" *ngIf="!autoRefresh()" aria-label="Refresh results">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="isLoading()" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="loading-text">Loading results...</p>
+  </div>
+
+  <div class="bargraph-display" *ngIf="!isLoading() && optionData()" @fadeIn>
+    <div class="option-row" *ngFor="let option of optionData()?.options; let i = index" @fadeIn>
+      <div class="option-label">
+        <div class="left-label">
+          <span class="option-letter" aria-hidden="true">{{ getOptionLetter(i) }}</span>
+          <span class="option-text">{{ option.optionText }}</span>
+        </div>
+        <div class="right-label">
+          <span class="correct-badge" *ngIf="option.isCorrect" aria-label="Correct answer">✓ Correct</span>
+        </div>
+      </div>
+
+      <div class="bar-container" role="progressbar" [attr.aria-valuenow]="option.count" [attr.aria-valuemin]="0" [attr.aria-valuemax]="optionData()?.totalResponses">
+        <div
+          class="bar"
+          [style.width.%]="revealed() ? getBarWidth(option) : 0"
+          [style.background]="getBarColor(option)"
+          [attr.data-percent]="option.percentage.toFixed(1)"
+          @barGrow
+        >
+          <span class="bar-label" *ngIf="option.count > 0">
+            {{ option.count }} ({{ option.percentage.toFixed(1) }}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading() && optionData()?.totalResponses === 0">
+    <p>📊 No responses yet</p>
+  </div>
+</div>

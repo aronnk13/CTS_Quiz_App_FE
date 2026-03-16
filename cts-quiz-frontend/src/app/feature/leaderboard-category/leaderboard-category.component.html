@@ -1,0 +1,130 @@
+<div class="category-container" role="region" aria-label="Category Champions">
+  <div class="header">
+    <h2 class="title">🏅 Category Champions</h2>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Category tabs">
+    <button
+      class="tab"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'fastest'"
+      [class.active]="activeTab() === 'fastest'"
+      (click)="setTab('fastest')"
+    >
+      ⚡ Fastest
+    </button>
+
+    <button
+      class="tab"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'accurate'"
+      [class.active]="activeTab() === 'accurate'"
+      (click)="setTab('accurate')"
+    >
+      🎯 Most Accurate
+    </button>
+
+    <button
+      class="tab"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'consistent'"
+      [class.active]="activeTab() === 'consistent'"
+      (click)="setTab('consistent')"
+    >
+      📊 Most Consistent
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="isLoading()" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="loading-text">Loading categories...</p>
+  </div>
+
+  <div class="content" *ngIf="!isLoading() && categories()" aria-live="polite">
+    <!-- Fastest Responder -->
+    <section
+      class="category-card"
+      *ngIf="activeTab() === 'fastest'"
+      role="region"
+      aria-label="Fastest Responder"
+    >
+      <div class="trophy-section">
+        <div class="trophy-icon">⚡</div>
+        <h3 class="category-title">Fastest Responder</h3>
+      </div>
+
+      <div *ngIf="categories()?.fastestResponder; else noFastest" class="winner-info">
+        <div class="winner-name">{{ categories()?.fastestResponder?.participantName }}</div>
+        <div class="stat-display">
+          <div class="stat-label">Average Response Time</div>
+          <div class="stat-value">{{ categories()?.fastestResponder?.formattedTime }}</div>
+        </div>
+        <div class="award-badge">🏆 Speed Demon</div>
+      </div>
+
+      <ng-template #noFastest>
+        <div class="empty-state">⚡ No data available for fastest responder</div>
+      </ng-template>
+    </section>
+
+    <!-- Most Accurate -->
+    <section
+      class="category-card"
+      *ngIf="activeTab() === 'accurate'"
+      role="region"
+      aria-label="Most Accurate"
+    >
+      <div class="trophy-section">
+        <div class="trophy-icon">🎯</div>
+        <h3 class="category-title">Most Accurate</h3>
+      </div>
+
+      <div *ngIf="categories()?.mostAccurate; else noAccurate" class="winner-info">
+        <div class="winner-name">{{ categories()?.mostAccurate?.participantName }}</div>
+        <div class="stat-display">
+          <div class="stat-label">Accuracy Rate</div>
+          <div class="stat-value">{{ categories()?.mostAccurate?.accuracyPercentage?.toFixed(1) }}%</div>
+        </div>
+        <div class="sub-stats">
+          <span>{{ categories()?.mostAccurate?.correctAnswers }} correct</span>
+          <span class="divider">/</span>
+          <span>{{ categories()?.mostAccurate?.totalAnswers }} total</span>
+        </div>
+        <div class="award-badge">🏆 Precision Master</div>
+      </div>
+
+      <ng-template #noAccurate>
+        <div class="empty-state">🎯 No data available for accuracy</div>
+      </ng-template>
+    </section>
+
+    <!-- Most Consistent -->
+    <section
+      class="category-card"
+      *ngIf="activeTab() === 'consistent'"
+      role="region"
+      aria-label="Most Consistent"
+    >
+      <div class="trophy-section">
+        <div class="trophy-icon">📊</div>
+        <h3 class="category-title">Most Consistent</h3>
+      </div>
+
+      <div *ngIf="categories()?.mostConsistent; else noConsistent" class="winner-info">
+        <div class="winner-name">{{ categories()?.mostConsistent?.participantName }}</div>
+        <div class="stat-display">
+          <div class="stat-label">Average Time</div>
+          <div class="stat-value">{{ (categories()?.mostConsistent?.averageTimeMs! / 1000).toFixed(2) }}s</div>
+        </div>
+        <div class="sub-stats">
+          <span>Low variance: {{ categories()?.mostConsistent?.timeVariance?.toFixed(2) }}</span>
+        </div>
+        <div class="award-badge">🏆 Mr./Ms. Reliable</div>
+      </div>
+
+      <ng-template #noConsistent>
+        <div class="empty-state">📊 No data available for consistency</div>
+      </ng-template>
+    </section>
+  </div>
+</div>

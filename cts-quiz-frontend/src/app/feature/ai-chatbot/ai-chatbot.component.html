@@ -1,0 +1,141 @@
+<!-- Chatbot Toggle Button -->
+<div class="chatbot-toggle" [class.open]="isOpen" (click)="toggleChatbot()">
+  <div class="chatbot-icon">
+    <svg *ngIf="!isOpen" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C10.73 22 9.5 21.77 8.36 21.34L3 22L4.66 16.64C4.23 15.5 4 14.27 4 13C4 7.5 8.5 3 14 3H12ZM12 4C9.79 4 8 5.79 8 8S9.79 12 12 12 16 10.21 16 8 14.21 4 12 4Z"/>
+    </svg>
+    <svg *ngIf="isOpen" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+    </svg>
+  </div>
+  <div class="chatbot-pulse" *ngIf="!isOpen"></div>
+</div>
+
+<!-- Chatbot Panel -->
+<div class="chatbot-panel" [class.open]="isOpen" [class.dark]="isDarkMode" [@slideIn] *ngIf="isOpen">
+  <!-- Header -->
+  <div class="chatbot-header">
+    <div class="header-content">
+      <div class="bot-avatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14A7,7 0 0,1 13,21H11A7,7 0 0,1 4,14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,11V13H7V11H9M17,11V13H15V11H17Z"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h3>AI Assistant</h3>
+        <p>Quiz Creator & Theme Helper</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="clear-btn" (click)="clearChat()" title="Clear Chat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+        </svg>
+      </button>
+      <button class="close-btn" (click)="toggleChatbot()" title="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-container" #chatContainer>
+    <div class="messages">
+      <div *ngFor="let message of messages" 
+           class="message" 
+           [class.user]="message.sender === 'user'"
+           [class.assistant]="message.sender === 'assistant'"
+           [class.typing]="message.isTyping"
+           [@fadeIn]>
+        
+        <div class="message-avatar">
+          <svg *ngIf="message.sender === 'user'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+          </svg>
+          <svg *ngIf="message.sender === 'assistant'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7A7,7 0 0,1 20,14A7,7 0 0,1 13,21H11A7,7 0 0,1 4,14A7,7 0 0,1 11,7V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M9,11V13H7V11H9M17,11V13H15V11H17Z"/>
+          </svg>
+        </div>
+
+        <div class="message-content">
+          <div class="message-text" [innerHTML]="formatMessageContent(message.content)"></div>
+          <div class="message-time">{{ message.timestamp | date:'short' }}</div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div *ngIf="message.isTyping" class="typing-indicator">
+          <div class="typing-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-input-area">
+    <!-- Speech Recognition Status -->
+    <div *ngIf="isListening" class="speech-status">
+      <div class="listening-indicator">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring pulse-ring-delay-1"></div>
+        <div class="pulse-ring pulse-ring-delay-2"></div>
+        🎤 Listening...
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="quick-action" (click)="currentMessage = 'Create a quiz about JavaScript'; sendMessage()">
+        📝 Create Quiz
+      </button>
+      <button class="quick-action" (click)="currentMessage = 'Switch to dark mode'; sendMessage()">
+        🌙 Dark Mode
+      </button>
+      <button class="quick-action" (click)="currentMessage = 'Help me with quiz creation'; sendMessage()">
+        ❓ Help
+      </button>
+    </div>
+
+    <!-- Input Controls -->
+    <div class="input-controls">
+      <div class="message-input-container">
+        <textarea 
+          #messageInput
+          [(ngModel)]="currentMessage"
+          (keydown)="onKeyDown($event)"
+          placeholder="Type your message or use voice..."
+          rows="1"
+          [disabled]="isLoading"
+          class="message-input">
+        </textarea>
+        
+        <button 
+          *ngIf="isSpeechSupported"
+          class="speech-btn"
+          [class.listening]="isListening"
+          (click)="toggleSpeechRecognition()"
+          [disabled]="isLoading"
+          title="Voice Input">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+          </svg>
+        </button>
+        
+        <button 
+          class="send-btn"
+          [disabled]="!currentMessage.trim() || isLoading"
+          (click)="sendMessage()">
+          <svg *ngIf="!isLoading" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+          </svg>
+          <div *ngIf="isLoading" class="loading-spinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

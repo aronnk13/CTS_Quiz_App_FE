@@ -1,0 +1,587 @@
+<div class="admin-container">
+  <!-- Sidebar -->
+  <div class="admin-sidebar" [class.collapsed]="sidebarCollapsed()">
+    <div class="sidebar-header">
+      <img src="/Cognizant_logo.png" alt="Cognizant" class="logo">
+      <div class="logo-collapsed">
+        <i class="fas fa-building"></i>
+      </div>
+      <h3>Admin Portal</h3>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li [class.active]="selectedTab() === 'overview'">
+          <button (click)="selectTab('overview')" class="nav-btn">
+            <i class="fas fa-chart-pie"></i>
+            <span>Overview</span>
+          </button>
+        </li>
+        <li [class.active]="selectedTab() === 'users'">
+          <button (click)="selectTab('users')" class="nav-btn">
+            <i class="fas fa-users"></i>
+            <span>User Management</span>
+          </button>
+        </li>
+        <li [class.active]="selectedTab() === 'quizzes'">
+          <button (click)="selectTab('quizzes')" class="nav-btn">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Quiz Management</span>
+          </button>
+        </li>
+        <li [class.active]="selectedTab() === 'templates'">
+          <button (click)="selectTab('templates')" class="nav-btn">
+            <i class="fas fa-clone"></i>
+            <span>Templates</span>
+          </button>
+        </li>
+        <li [class.active]="selectedTab() === 'analytics'">
+          <button (click)="selectTab('analytics')" class="nav-btn">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+          </button>
+        </li>
+        <li [class.active]="selectedTab() === 'settings'">
+          <button (click)="selectTab('settings')" class="nav-btn">
+            <i class="fas fa-cogs"></i>
+            <span>Settings</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span>
+          <small class="user-role">Administrator</small>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="admin-main">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="header-left">
+        <button class="collapse-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+          <i class="fas" [class.fa-bars]="sidebarCollapsed()" [class.fa-times]="!sidebarCollapsed()"></i>
+        </button>
+        <h1>{{ getTabTitle() }}</h1>
+        <p>{{ getTabSubtitle() }}</p>
+      </div>
+      <div class="header-right">
+        <div class="current-time">
+          {{ getCurrentDateTime() }}
+        </div>
+        <button class="theme-toggle-btn" (click)="toggleTheme()" [title]="getThemeButtonTitle()">
+          <i [class]="getThemeIcon()"></i>
+        </button>
+        <div class="user-badge">
+          <i class="fas fa-crown"></i>
+          <span>{{ currentUser()?.employeeId }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="admin-content">
+      <!-- Overview Tab -->
+      <div *ngIf="selectedTab() === 'overview'" class="tab-content">
+        <div class="stats-grid">
+          <div class="stat-card users">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <h3 class="animated-number">{{ displayedStats().totalUsers }}</h3>
+              <p>Total Users</p>
+            </div>
+          </div>
+          <div class="stat-card hosts">
+            <div class="stat-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-info">
+              <h3 class="animated-number">{{ displayedStats().activeHosts }}</h3>
+              <p>Active Hosts</p>
+            </div>
+          </div>
+          <div class="stat-card quizzes">
+            <div class="stat-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="stat-info">
+              <h3 class="animated-number">{{ displayedStats().totalQuizzes }}</h3>
+              <p>Total Quizzes</p>
+            </div>
+          </div>
+          <div class="stat-card sessions">
+            <div class="stat-icon">
+              <i class="fas fa-play-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3 class="animated-number">{{ displayedStats().activeSessions }}</h3>
+              <p>Active Sessions</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-charts">
+          <div class="chart-card">
+            <h4><i class="fas fa-history"></i> Recent Activity</h4>
+            <div class="activity-list" *ngIf="!isLoading(); else loadingActivity">
+              <div *ngFor="let activity of recentActivity()" class="activity-item">
+                <i [class]="activity.icon + ' ' + activity.color"></i>
+                <span>{{ activity.activity }}</span>
+                <small>{{ formatTimeAgo(activity.timestamp) }}</small>
+              </div>
+              <div *ngIf="recentActivity().length === 0" class="no-activity">
+                <i class="fas fa-info-circle text-muted"></i>
+                <span>No recent activity found</span>
+              </div>
+            </div>
+            <ng-template #loadingActivity>
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading activity...</span>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Tab -->
+      <div *ngIf="selectedTab() === 'users'" class="tab-content">
+        <div class="table-header">
+          <h3><i class="fas fa-users"></i> User Management</h3>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="search-filter-container">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text"
+              placeholder="Search by name, email, ID..."
+              [value]="searchTerm()"
+              (input)="onSearchChange($any($event.target).value)"
+              class="search-input"
+            >
+            <div *ngIf="searchTerm()" class="search-results-badge">
+              {{ filteredUsers().length }} results
+            </div>
+          </div>
+
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label>Filter by Role:</label>
+              <select 
+                [value]="selectedRoleFilter() || ''"
+                (change)="onRoleFilterChange($any($event.target).value)"
+                class="filter-select"
+              >
+                <option value="">All Roles</option>
+                <option *ngFor="let role of roles()" [value]="role.roleId">
+                  {{ role.roleName }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Filter by Status:</label>
+              <select 
+                [value]="selectedStatusFilter()"
+                (change)="onStatusFilterChange($any($event.target).value)"
+                class="filter-select"
+              >
+                <option value="all">All Users</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+              </select>
+            </div>
+
+            <button 
+              *ngIf="isFiltersActive()"
+              class="btn-clear-filters"
+              (click)="clearFilters()"
+            >
+              <i class="fas fa-times"></i> Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <div class="users-table-container">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of filteredUsers()">
+                <td>{{ user.employeeId }}</td>
+                <td>{{ formatUserName(user) }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span [class]="getRoleClass(getUserMainRole(user))" class="role-badge">
+                    <i [class]="getRoleIcon(getUserMainRole(user))"></i>
+                    {{ getUserRoles(user) }}
+                  </span>
+                </td>
+                <td>
+                  <span [class]="getStatusClass(user.isActive)" class="status-badge">
+                    {{ getStatusText(user.isActive) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn-sm btn-outline" (click)="openRoleAssignModal(user.id)" title="Change Role">
+                      <i class="fas fa-user-cog"></i>
+                    </button>
+                    <button 
+                      class="btn-sm btn-outline"
+                      [class.btn-danger]="user.isActive"
+                      [class.btn-success]="!user.isActive"
+                      (click)="toggleUserStatus(user.id)"
+                      [title]="user.isActive ? 'Deactivate User' : 'Activate User'"
+                    >
+                      <i [class]="user.isActive ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="filteredUsers().length === 0" class="empty-state">
+            <i class="fas fa-search"></i>
+            <h3>No users found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Management Tab -->
+      <div *ngIf="selectedTab() === 'quizzes'" class="tab-content">
+        <div class="quiz-management-container">
+          <div class="table-header">
+            <h3><i class="fas fa-clipboard-list"></i> Quiz Management</h3>
+          </div>
+
+          <div class="quiz-tabs">
+            <button 
+              [class.active]="selectedQuizTab() === 'quizzes'"
+              (click)="selectQuizTab('quizzes')"
+              class="quiz-tab-btn">
+              <i class="fas fa-clipboard-question"></i>
+              Quizzes ({{ filteredQuizzes().length }})
+            </button>
+            <button 
+              [class.active]="selectedQuizTab() === 'surveys'"
+              (click)="selectQuizTab('surveys')"
+              class="quiz-tab-btn">
+              <i class="fas fa-clipboard-list"></i>
+              Surveys ({{ filteredSurveys().length }})
+            </button>
+            <button 
+              [class.active]="selectedQuizTab() === 'polls'"
+              (click)="selectQuizTab('polls')"
+              class="quiz-tab-btn">
+              <i class="fas fa-poll"></i>
+              Polls ({{ filteredPolls().length }})
+            </button>
+          </div>
+
+          <!-- Quizzes Content -->
+          <div *ngIf="selectedQuizTab() === 'quizzes'" class="quiz-content">
+            <div class="quizzes-table-container" *ngIf="filteredQuizzes().length > 0; else noQuizzes">
+              <table class="quizzes-table">
+                <thead>
+                  <tr>
+                    <th>Quiz ID</th>
+                    <th>Quiz Number</th>
+                    <th>Created By</th>
+                    <th>Created Date</th>
+                    <th>Updated Date</th>
+                    <th>Status</th>
+                    <th>Sessions</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let quiz of filteredQuizzes()">
+                    <td>{{ quiz.quizId }}</td>
+                    <td>{{ quiz.quizNumber || 'N/A' }}</td>
+                    <td>{{ quiz.createdBy || 'Unknown' }}</td>
+                    <td>{{ formatDate(quiz.createdAt) }}</td>
+                    <td>{{ formatDate(quiz.updatedAt) }}</td>
+                    <td>
+                      <span class="status-badge" [class.active]="quiz.status === 'Active'">
+                        {{ quiz.status || 'Draft' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="session-count">{{ quiz.sessions?.length || 0 }}</span>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button class="btn-sm btn-outline" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-sm btn-outline" title="Edit Quiz">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-sm btn-outline btn-danger" title="Delete Quiz">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <ng-template #noQuizzes>
+              <div class="empty-state">
+                <i class="fas fa-clipboard-question"></i>
+                <h3>No Quizzes Found</h3>
+
+                <p>{{ searchTerm() ? 'Try adjusting your search criteria' : 'No quizzes have been created yet.' }}</p>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Surveys Content -->
+          <div *ngIf="selectedQuizTab() === 'surveys'" class="quiz-content">
+            <div class="surveys-table-container" *ngIf="filteredSurveys().length > 0; else noSurveys">
+              <table class="surveys-table">
+                <thead>
+                  <tr>
+                    <th>Survey ID</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Anonymous</th>
+                    <th>Questions</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let survey of filteredSurveys()">
+                    <td>{{ survey.surveyId }}</td>
+                    <td>{{ survey.title }}</td>
+                    <td>{{ survey.description || 'No description' }}</td>
+                    <td>
+                      <span class="status-badge" [class.active]="survey.status === 'Active'">
+                        {{ survey.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="anonymous-badge" [class.yes]="survey.isAnonymous">
+                        {{ survey.isAnonymous ? 'Yes' : 'No' }}
+                      </span>
+                    </td>
+                    <td>{{ survey.questionCount || 0 }}</td>
+                    <td>
+                      <div class="action-buttons">
+                        <button class="btn-sm btn-outline" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-sm btn-outline" title="Edit Survey">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-sm btn-outline btn-danger" title="Delete Survey">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <ng-template #noSurveys>
+              <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Surveys Found</h3>
+                <p>{{ searchTerm() ? 'Try adjusting your search criteria' : 'No surveys have been created yet.' }}</p>
+
+                <p>Create your first survey to collect feedback.</p>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Polls Content -->
+          <div *ngIf="selectedQuizTab() === 'polls'" class="quiz-content">
+            <div class="polls-table-container" *ngIf="filteredPolls().length > 0; else noPolls">
+              <table class="polls-table">
+                <thead>
+                  <tr>
+                    <th>Poll ID</th>
+                    <th>Title</th>
+                    <th>Question</th>
+                    <th>Status</th>
+                    <th>Anonymous</th>
+                    <th>Selection Type</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let poll of filteredPolls()">
+                    <td>{{ poll.pollId }}</td>
+                    <td>{{ poll.pollTitle }}</td>
+                    <td>{{ poll.pollQuestion }}</td>
+                    <td>
+                      <span class="status-badge" [class.active]="poll.pollStatus === 'Active'">
+                        {{ poll.pollStatus }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="anonymous-badge" [class.yes]="poll.pollAnonymous">
+                        {{ poll.pollAnonymous ? 'Yes' : 'No' }}
+                      </span>
+                    </td>
+                    <td>{{ poll.selectionType }}</td>
+                    <td>{{ formatDate(poll.createdAt) }}</td>
+                    <td>
+                      <div class="action-buttons">
+                        <button class="btn-sm btn-outline" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-sm btn-outline" title="Edit Poll">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-sm btn-outline btn-danger" title="Delete Poll">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <ng-template #noPolls>
+              <div class="empty-state">
+                <i class="fas fa-poll"></i>
+                <h3>No Polls Found</h3>
+
+                <p>{{ searchTerm() ? 'Try adjusting your search criteria' : 'No polls have been created yet.' }}</p>
+                <p>Create your first poll to gather quick responses.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates Tab -->
+      <div *ngIf="selectedTab() === 'templates'" class="tab-content">
+        <app-template></app-template>
+      </div>
+
+      <!-- Analytics Tab -->
+      <div *ngIf="selectedTab() === 'analytics'" class="tab-content">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-line"></i> Feedback Analytics</h2>
+          <p>Detailed feedback analytics and visualizations</p>
+        </div>
+        <app-analytics></app-analytics>
+      </div>
+
+      <div *ngIf="selectedTab() === 'settings'" class="tab-content">
+        <div class="coming-soon">
+          <i class="fas fa-cogs"></i>
+          <h3>System Settings</h3>
+          <p>Coming Soon - Configure system-wide settings and preferences</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Role Assignment Modal -->
+<div *ngIf="showRoleModal()" class="modal-overlay" (click)="closeRoleModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Change User Role</h4>
+      <button class="close-btn" (click)="closeRoleModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Select New Role:</label>
+        <select [(ngModel)]="selectedRoleId" class="form-control">
+          <option value="" disabled>Choose a role...</option>
+          <option *ngFor="let role of roles()" [value]="role.roleId">
+            {{ role.roleName }}
+          </option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeRoleModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="assignRole()">Change Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Modal -->
+<div *ngIf="showTemplateModal()" class="modal-overlay" (click)="closeTemplateModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>{{ selectedTemplate() ? 'Edit' : 'Create' }} Template</h4>
+      <button class="close-btn" (click)="closeTemplateModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Template Name:</label>
+        <input 
+          type="text" 
+          class="form-control"
+          [(ngModel)]="templateFormData().name"
+          placeholder="Enter template name"
+        >
+      </div>
+      <div class="form-group">
+        <label>Template Type:</label>
+        <select [(ngModel)]="templateFormData().type" class="form-control">
+          <option value="PDF">PDF</option>
+          <option value="Excel">Excel</option>
+          <option value="Word">Word</option>
+          <option value="HTML">HTML</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Configuration (JSON):</label>
+        <textarea 
+          class="form-control code-textarea"
+          [(ngModel)]="templateFormData().config"
+          placeholder="Enter JSON configuration..."
+          rows="10"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeTemplateModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveTemplate()">
+        {{ selectedTemplate() ? 'Update' : 'Create' }} Template
+      </button>
+    </div>
+  </div>
+</div>

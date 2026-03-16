@@ -1,0 +1,129 @@
+/* Premium Topbar Styling */
+.navbar {
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%) !important;
+  box-shadow: 0 2px 12px rgba(30, 58, 138, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+}
+
+/* Remove button focus outline and white box */
+button:focus,
+button:active,
+button:focus-visible,
+.btn:focus,
+.btn:active,
+.btn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Hamburger menu button */
+.btn-link:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+/* Brand styling */
+.navbar-brand {
+  font-weight: 600;
+  color: white !important;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-brand:hover {
+  opacity: 0.9;
+}
+
+.navbar-brand .badge {
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Profile button - no white box */
+.dropdown button {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.dropdown button:hover,
+.dropdown button:focus,
+.dropdown button:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+/* Profile photo styling */
+.rounded-circle {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rounded-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+  z-index: 1060 !important;
+  pointer-events: auto !important;
+}
+
+.dropdown-menu.show {
+  display: block !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  border-bottom: none !important;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(30, 64, 175, 0.1) 100%);
+  transform: translateX(5px);
+  color: #1e3a8a;
+}
+
+.dropdown-item:active {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(30, 64, 175, 0.15) 100%);
+}
+
+/* Click outside backdrop */
+.position-fixed {
+  background: transparent;
+  z-index: 1050 !important;
+}

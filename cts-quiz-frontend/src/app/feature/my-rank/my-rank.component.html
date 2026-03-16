@@ -1,0 +1,86 @@
+<div class="my-rank-container" @slideUp>
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-state" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="loading-text">Loading your rank...</p>
+  </div>
+
+  <!-- Personal Rank Display -->
+  <div *ngIf="!isLoading() && personalRank()" class="rank-card" role="region" aria-label="Your performance">
+    <!-- Header -->
+    <div class="rank-header">
+      <h2 class="title">Your Performance</h2>
+      <button class="refresh-btn" (click)="refresh()" title="Refresh leaderboard" aria-label="Refresh">
+        🔄
+      </button>
+    </div>
+
+    <!-- Main Rank Badge -->
+    <div class="rank-badge-section">
+      <div class="rank-badge" [style.background]="rankBadgeColor()" @rankPulse aria-hidden="true">
+        <div class="rank-number">{{ personalRank()!.rank }}</div>
+        <div class="rank-label">{{ rankLabel() }}</div>
+      </div>
+
+      <div class="percentile" aria-live="polite">
+        <div class="percent-text">Top <strong>{{ rankPercentile() }}%</strong></div>
+        <div class="total-participants">out of {{ personalRank()!.totalParticipants }} participants</div>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" role="list" aria-label="Performance statistics">
+      <!-- Score Card -->
+      <div class="stat-card score-card" @scoreCount role="listitem" aria-label="Total score">
+        <div class="stat-icon" aria-hidden="true">🎯</div>
+        <div class="stat-value">{{ personalRank()!.score }}</div>
+        <div class="stat-label">Total Score</div>
+        <div class="stat-sublabel" *ngIf="personalRank()!.streakBonus > 0">+{{ personalRank()!.streakBonus }} from streaks</div>
+      </div>
+
+      <!-- Accuracy Card -->
+      <div class="stat-card accuracy-card" @scoreCount role="listitem" aria-label="Accuracy">
+        <div class="stat-icon" aria-hidden="true">✅</div>
+        <div class="stat-value">{{ accuracy() }}%</div>
+        <div class="stat-label">Accuracy</div>
+        <div class="stat-sublabel">{{ personalRank()!.correctAnswers }}/{{ personalRank()!.totalQuestions }} correct</div>
+      </div>
+
+      <!-- Speed Card -->
+      <div class="stat-card speed-card" @scoreCount role="listitem" aria-label="Average response time">
+        <div class="stat-icon" aria-hidden="true">⚡</div>
+        <div class="stat-value">{{ formatTime(personalRank()!.averageSpeedMs) }}</div>
+        <div class="stat-label">Avg Response Time</div>
+      </div>
+
+      <!-- Streak Card -->
+      <div class="stat-card streak-card" [class.has-streak]="hasStreak()" @scoreCount role="listitem" aria-label="Current streak">
+        <div class="stat-icon" aria-hidden="true">{{ getStreakEmoji(personalRank()!.currentStreak) || '📊' }}</div>
+        <div class="stat-value">{{ personalRank()!.currentStreak }}</div>
+        <div class="stat-label">Current Streak</div>
+        <div class="stat-sublabel" *ngIf="personalRank()!.bestStreak > 0">Best: {{ personalRank()!.bestStreak }}</div>
+      </div>
+    </div>
+
+    <!-- Streak Animation Overlay -->
+    <div class="streak-overlay" *ngIf="showStreakAnimation()" @fadeIn aria-hidden="true">
+      <div class="streak-message">
+        🔥 ON FIRE! 🔥
+        <div class="streak-sub">{{ personalRank()!.currentStreak }} in a row!</div>
+      </div>
+    </div>
+
+    <!-- Participant Name -->
+    <div class="participant-info" aria-hidden="false">
+      <div class="participant-name">{{ personalRank()!.participantName }}</div>
+      <div class="last-updated">Updated: {{ personalRank()!.lastUpdated | date: 'short' }}</div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!isLoading() && !personalRank()" class="no-data" role="status" aria-live="polite">
+    <div class="no-data-icon" aria-hidden="true">📊</div>
+    <p>No rank data available</p>
+    <button class="retry-btn" (click)="refresh()" aria-label="Retry">Retry</button>
+  </div>
+</div>

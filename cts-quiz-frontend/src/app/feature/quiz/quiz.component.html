@@ -1,0 +1,544 @@
+<div class="quiz-game-page">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-screen">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Preparing your quiz...</p>
+  </div>
+
+  <!-- Active Quiz -->
+  <div *ngIf="!loading && !finished" class="quiz-active">
+    <!-- Top Navigation Bar -->
+    <div class="top-nav-bar">
+      <!-- Live Badge (Top Left) - Enhanced with White Border -->
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE</span>
+      </div>
+
+      <!-- Quiz Title (Top Center) - Uppercase -->
+      <div class="quiz-title-display">
+        <h1>{{ quizTitle.toUpperCase() }}</h1>
+      </div>
+
+      <!-- Timer (Top Right Corner) with Blinking for < 10s -->
+      <div class="timer-top-right">
+        <div class="timer-circle-compact" [class.critical-countdown]="timeRemaining <= 10">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" class="timer-bg"></circle>
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              class="timer-progress"
+              [class.critical-progress]="timeRemaining <= 10"
+              [style.strokeDashoffset]="283 - (283 * timeRemaining / (currentQuestion?.timerSeconds || 30))"
+            ></circle>
+          </svg>
+          <div class="timer-text">
+            <span class="time-value" [class.critical-time]="timeRemaining <= 10">{{ timeRemaining }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Responsive Progress Bar -->
+    <div class="progress-bar-wrapper-responsive">
+      <div class="progress-segments-responsive">
+        <div
+          *ngFor="let question of questions; let i = index"
+          class="progress-segment"
+          [class.completed]="answerStates && answerStates[i] === 'answered'"
+          [class.active]="i === currentIndex"
+          [class.missed]="answerStates && answerStates[i] === 'missed'"
+          [class.future]="i > currentIndex"
+        >
+          <!-- Active progress animation -->
+          <div *ngIf="i === currentIndex" class="active-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waiting State with Dark Theme and Animations -->
+    <!-- HIDE if any leaderboard or interactive overlay is showing to prevent overlay conflict -->
+    <div *ngIf="waitingForNext && !showLeaderboardOverlay && !showOptionBarGraphOverlay() && !showTopNLeaderboardOverlay() && !showProgressiveLeaderboardOverlay() && !showCategoryLeaderboardOverlay()" class="waiting-overlay animate__animated animate__fadeIn">
+      <div class="waiting-card-dark animate__animated animate__zoomIn">
+        <div class="success-icon-dark animate__animated animate__bounceIn animate__delay-1s">✓</div>
+        <h3 class="waiting-title">Answer Submitted!</h3>
+        <p class="waiting-subtitle">Brace Yourself for the Big Reveal...</p>
+        <div class="pulse-loader-dark">
+          <span></span><span></span><span></span>
+        </div>
+        <!-- Timer Display in Waiting State -->
+        <div class="waiting-timer">
+          <div class="timer-circle-waiting">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" class="timer-bg"></circle>
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                class="timer-progress"
+                [class.critical-progress]="timeRemaining <= 10"
+                [style.strokeDashoffset]="283 - (283 * timeRemaining / (currentQuestion?.timerSeconds || 30))"
+              ></circle>
+            </svg>
+            <div class="timer-text">
+              <span class="time-value" [class.critical-time]="timeRemaining <= 10">{{ timeRemaining }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question & Options with Page Tear Animation -->
+    <div *ngIf="!waitingForNext && !showLeaderboardOverlay" class="quiz-content" [class.page-tear-exit]="submitting">
+      <!-- Left Side: Question (60% width) -->
+      <div class="question-section">
+        <!-- Question Number Outside Box (Top Left) -->
+        <div class="question-number-outside">Q{{ currentIndex + 1 }}</div>
+
+        <div class="question-card">
+          <h2 class="question-text">{{ currentQuestion?.text }}</h2>
+        </div>
+      </div>
+
+      <!-- Right Side: Options + Submit (40% width) - Centered -->
+      <div class="options-section">
+        <!-- Standard Quiz/Poll Options (Single Choice) -->
+        <div
+          class="options-grid"
+          *ngIf="!isRatingQuestion() && !isTextQuestion() && !isMultipleChoiceQuestion() && !isRankingQuestion()"
+        >
+          <button
+            *ngFor="let option of currentQuestion?.options; let i = index"
+            class="option-btn"
+            [class.selected]="selected === option"
+            [disabled]="submitting"
+            (click)="onSelectedChange(option)"
+          >
+            <span class="option-letter">{{ ['A', 'B', 'C', 'D', 'E', 'F'][i] }}</span>
+            <span class="option-text">{{ option }}</span>
+            <span class="check-mark" *ngIf="selected === option">✓</span>
+          </button>
+        </div>
+
+        <!-- Multiple Choice Questions (Survey) -->
+        <div class="options-grid" *ngIf="isMultipleChoiceQuestion()">
+          <button
+            *ngFor="let option of currentQuestion?.options; let i = index"
+            class="option-btn"
+            [class.selected]="isMultipleChoiceSelected(option)"
+            [disabled]="submitting"
+            (click)="onMultipleChoiceToggle(option)"
+          >
+            <span class="option-letter">{{ ['A', 'B', 'C', 'D', 'E', 'F'][i] }}</span>
+            <span class="option-text">{{ option }}</span>
+            <span class="check-mark" *ngIf="isMultipleChoiceSelected(option)">✓</span>
+          </button>
+          <p class="text-muted small mt-2">Select all that apply</p>
+        </div>
+
+        <!-- Ranking Questions (Survey) - Checkbox choice + ordering -->
+        <div class="ranking-checkbox-container" *ngIf="isRankingQuestion()">
+          <div class="ranking-header">
+            <div class="ranking-icon">🏆</div>
+            <h3 class="ranking-title">Choose &amp; Order</h3>
+            <p class="ranking-subtitle">
+              Select items (checkboxes). The badge shows the order. Use ▲ ▼ to reorder.
+            </p>
+          </div>
+
+          <div class="ranking-checkbox-list">
+            <label class="ranking-checkbox-item" *ngFor="let option of currentQuestion?.options">
+              <input
+                type="checkbox"
+                [checked]="isRankSelected(option)"
+                (change)="onRankCheckboxToggle(option, $any($event.target).checked)"
+                [disabled]="submitting"
+                [attr.aria-label]="'Select ' + option"
+              />
+              <span class="custom-box" aria-hidden="true"></span>
+
+              <span class="rank-order-badge" *ngIf="isRankSelected(option)">
+                {{ getRankOf(option) }}
+              </span>
+
+              <span class="option-text">{{ option }}</span>
+
+              <div class="rank-reorder" *ngIf="isRankSelected(option)">
+                <button
+                  type="button"
+                  class="rank-up"
+                  title="Move earlier"
+                  (click)="bumpRankUp(option)"
+                  [disabled]="getRankOf(option) === 1 || submitting"
+                  aria-label="Move earlier"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  class="rank-down"
+                  title="Move later"
+                  (click)="bumpRankDown(option)"
+                  [disabled]="getRankOf(option) === selectedRanking.length || submitting"
+                  aria-label="Move later"
+                >
+                  ▼
+                </button>
+              </div>
+            </label>
+          </div>
+
+          <div class="ranking-foot">
+            <button
+              type="button"
+              class="clear-ranking"
+              (click)="clearRanking()"
+              [disabled]="submitting || (selectedRanking.length || 0) === 0"
+            >
+              Clear Selection
+            </button>
+
+            <div class="selected-count" [class.warning]="(selectedRanking.length || 0) === 0">
+              {{ selectedRanking.length || 0 }} selected
+              <span *ngIf="currentQuestion?.minSelect"> (min {{ currentQuestion?.minSelect }})</span>
+              <span *ngIf="currentQuestion?.maxSelect"> • Max {{ currentQuestion?.maxSelect }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rating Question (Survey) - Star Icon UI -->
+        <div class="rating-container-enhanced" *ngIf="isRatingQuestion()">
+          <div class="rating-header">
+            <div class="rating-icon">⭐</div>
+            <h3 class="rating-title">Rate Your Experience</h3>
+            <p class="rating-subtitle">Tap or use ← → to choose</p>
+          </div>
+
+          <div
+            class="rating-stars-enhanced"
+            role="radiogroup"
+            [attr.aria-label]="currentQuestion?.text || 'Rating'"
+          >
+            <button
+              *ngFor="let star of [1, 2, 3, 4, 5]"
+              type="button"
+              class="star-btn-enhanced"
+              [class.selected]="ratingValue >= star"
+              [disabled]="submitting"
+              (click)="onRatingChange(star)"
+              (keydown)="onRatingKeydown($event, star)"
+              role="radio"
+              [attr.aria-checked]="ratingValue === star"
+              [attr.aria-label]="star + ' star'"
+            >
+              <svg class="star-svg" viewBox="0 0 24 24">
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div class="rating-feedback" *ngIf="ratingValue > 0">
+            <div class="rating-value-display">
+              <span class="rating-number">{{ ratingValue }}</span>
+              <span class="rating-max">/5</span>
+            </div>
+            <p class="rating-description">
+              {{
+                ratingValue === 1
+                  ? 'Poor'
+                  : ratingValue === 2
+                  ? 'Fair'
+                  : ratingValue === 3
+                  ? 'Good'
+                  : ratingValue === 4
+                  ? 'Very Good'
+                  : 'Excellent'
+              }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Short Text Input (Survey) - Floating Label & Clear Button -->
+        <div class="short-text-container" *ngIf="isTextQuestion()">
+          <div class="text-input-header">
+            <div class="text-icon">✍️</div>
+            <h3 class="text-title">Your Answer</h3>
+            <p class="text-subtitle">Short and sweet</p>
+          </div>
+
+          <div class="floating-input" [class.has-content]="(textAnswer.length || 0) > 0">
+            <input
+              type="text"
+              class="short-text-input"
+              [(ngModel)]="textAnswer"
+              (input)="onTextChange(textAnswer)"
+              [disabled]="submitting"
+              [attr.maxlength]="currentQuestion?.maxLength || 120"
+              placeholder=" "
+              autocomplete="off"
+              aria-label="Short answer"
+            />
+            <label class="floating-label">
+              {{ currentQuestion?.placeholder || 'Type your answer' }}
+            </label>
+
+            <button
+              type="button"
+              class="clear-btn"
+              *ngIf="textAnswer.length"
+              (click)="clearTextAnswer()"
+              aria-label="Clear text"
+              [disabled]="submitting"
+            >
+              ✕
+            </button>
+
+            <div class="field-underline"></div>
+
+            <div class="helper-row">
+              <span
+                class="char-count"
+                [class.warning]="(textAnswer.length || 0) > ((currentQuestion?.maxLength || 120) - 10)"
+                [class.limit]="(textAnswer.length || 0) === (currentQuestion?.maxLength || 120)"
+              >
+                {{ textAnswer.length || 0 }}/{{ currentQuestion?.maxLength || 120 }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-container">
+          <button
+            class="submit-btn"
+            [disabled]="!canSubmit()"
+            [class.loading]="submitting"
+            (click)="submitAnswer()"
+          >
+            <span *ngIf="!submitting">
+              <span class="submit-icon">🚀</span> Submit {{ sessionType === 'quiz' ? 'Answer' : 'Response' }}
+            </span>
+            <span *ngIf="submitting">
+              <span class="spinner"></span> Submitting...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Screen -->
+  <!-- Results Screen -->
+  <div *ngIf="!loading && finished" class="results-screen">
+    <!-- Poll Thank You Card -->
+    <div *ngIf="sessionType === 'poll'" class="results-card thank-you-card">
+      <div class="trophy-icon">✅</div>
+      <h2 class="results-title">Thank You!</h2>
+      <p class="thank-you-message">Your response has been submitted successfully.</p>
+      <div class="thank-you-icon">
+        <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#4CAF50" stroke-width="4" fill="none" />
+          <path
+            d="M30 50 L45 65 L70 35"
+            stroke="#4CAF50"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <button class="home-btn" (click)="returnToHome()">🏠 Return to Home</button>
+    </div>
+
+    <!-- Survey Thank You Card -->
+    <div *ngIf="sessionType === 'survey'" class="results-card thank-you-card">
+      <div class="trophy-icon">✅</div>
+      <h2 class="results-title">Thank You!</h2>
+      <p class="thank-you-message">Your response has been submitted successfully.</p>
+      <div class="thank-you-icon">
+        <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#4CAF50" stroke-width="4" fill="none" />
+          <path
+            d="M30 50 L45 65 L70 35"
+            stroke="#4CAF50"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <button class="home-btn" (click)="returnToHome()">🏠 Return to Home</button>
+    </div>
+
+    <!-- Quiz Results - Show Podium Leaderboard -->
+    <div *ngIf="sessionType === 'quiz'" class="results-card quiz-complete-podium">
+      <div class="podium-header">
+        <div class="trophy-icon">🏆</div>
+        <h2 class="results-title">Quiz Complete!</h2>
+      
+      </div>
+
+      <!-- Podium Leaderboard Component -->
+     
+        <app-leaderboard-podium [sessionId]="sessionIdSignal"></app-leaderboard-podium>
+     
+
+      <!-- Feedback Button -->
+      <div class="feedback-action">
+        <button class="feedback-btn" (click)="returnToParticipant()">
+          <span class="feedback-icon">✏️</span>
+          Go to Feedback
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question-wise Result Overlay for Polls/Surveys -->
+  <div *ngIf="showQuestionResult" class="question-result-overlay animate__animated animate__fadeIn">
+    <div class="question-result-card animate__animated animate__zoomIn">
+      <!-- Header with countdown -->
+      <div class="result-header">
+        <h2 *ngIf="sessionType === 'poll'">📊 Poll Results - Question {{ currentIndex + 1 }}</h2>
+        <h2 *ngIf="sessionType === 'survey'">📊 Survey Results - Question {{ currentIndex + 1 }}</h2>
+        <div class="result-countdown-badge">
+          <span class="countdown-icon">⏱️</span>
+          <span class="countdown-text">Next question in {{ nextQuestionCountdown }}s</span>
+        </div>
+        <button class="close-result-btn" (click)="closeQuestionResults()" title="Skip to next question">✕</button>
+      </div>
+
+      <!-- Result Component Container -->
+      <div class="result-content-wrapper">
+        <!-- Poll Results -->
+        <app-result-poll
+          *ngIf="sessionType === 'poll' && currentPollId"
+          [pollId]="currentPollId"
+          [sessionCode]="sessionCode"
+          [isQuestionWise]="true"
+          [questionId]="questionDetails[currentIndex].questionId">
+        </app-result-poll>
+
+        <!-- Survey Results -->
+        <app-result-survey
+          *ngIf="sessionType === 'survey' && currentSurveyId"
+          [surveyId]="currentSurveyId"
+          [sessionCode]="sessionCode"
+          [isQuestionWise]="true"
+          [questionId]="questionDetails[currentIndex].questionId">
+        </app-result-survey>
+      </div>
+
+      <!-- Skip Button -->
+      <!-- <div class="result-actions">
+        <button class="skip-result-btn" (click)="closeQuestionResults()">
+          Skip to Next Question →
+        </button>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Option Bar Graph Overlay -->
+  <div *ngIf="showOptionBarGraphOverlay()" class="interactive-overlay">
+    <div class="interactive-card">
+      <div class="interactive-header">
+        <h2>📊 Answer Distribution</h2>
+      </div>
+      <div class="interactive-content">
+        <app-option-bargraph
+          [questionId]="questionIdSignal"
+          [sessionId]="sessionIdSignal"
+          [optionCountsData]="optionBarGraphData()"
+          [overlayMode]="true">
+        </app-option-bargraph>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Rank Overlay -->
+  <div *ngIf="showPersonalRankOverlay() && personalRankData()" class="interactive-overlay">
+    <div class="interactive-card">
+      <div class="interactive-header">
+        <h2>🏅 Your Performance</h2>
+      </div>
+      <div class="interactive-content">
+        <app-my-rank
+          [participantId]="participantIdSignal"
+          [sessionId]="sessionIdSignal"
+          [personalRankData]="personalRankData()"
+          [overlayMode]="true">
+        </app-my-rank>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top-N Leaderboard Overlay -->
+  <div *ngIf="showTopNLeaderboardOverlay()" class="interactive-overlay">
+    <div class="interactive-card">
+      <div class="interactive-header">
+        <h2>🎮 Top Performers</h2>
+      </div>
+      <div class="interactive-content">
+        <app-leaderboard-topn
+          [sessionId]="sessionIdSignal"
+          [currentParticipantId]="participantIdStringSignal"
+          [topN]="topNOverlaySignal"
+          [topNData]="topNLeaderboardData()"
+          [overlayMode]="true">
+        </app-leaderboard-topn>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progressive Leaderboard Overlay -->
+  <div *ngIf="showProgressiveLeaderboardOverlay()" class="interactive-overlay">
+    <div class="interactive-card">
+      <div class="interactive-header">
+        <h2>🔥 Progressive Leaderboard</h2>
+      </div>
+      <div class="interactive-content">
+        <app-leaderboard-progressive
+          [sessionId]="sessionIdSignal"
+          [currentParticipantId]="participantIdStringSignal"
+          [progressiveData]="progressiveLeaderboardData()"
+          [overlayMode]="true">
+        </app-leaderboard-progressive>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Leaderboard Overlay -->
+  <div *ngIf="showCategoryLeaderboardOverlay()" class="interactive-overlay">
+    <div class="interactive-card">
+      <div class="interactive-header">
+        <h2>📊 Category Champions</h2>
+      </div>
+      <div class="interactive-content">
+        <app-leaderboard-category
+          [sessionId]="sessionIdSignal"
+          [categoryData]="categoryLeaderboardData()"
+          [overlayMode]="true">
+        </app-leaderboard-category>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Overlay - For question leaderboard and final podium -->
+  <div *ngIf="showLeaderboardOverlay" class="leaderboard-overlay animate__animated animate__fadeIn">
+    <div class="leaderboard-card animate__animated animate__zoomIn">
+      <div class="leaderboard-header">
+        <h2 *ngIf="leaderboardType === 'podium'">🏆 Final Leaderboard</h2>
+        <h2 *ngIf="leaderboardType === 'full'">📊 Current Rankings</h2>
+        <div *ngIf="leaderboardType === 'full' && leaderboardCountdown > 0" class="countdown-badge">
+          Next question in {{ leaderboardCountdown }}s
+        </div>
+      </div>
+      <div class="leaderboard-content-wrapper">
+        <app-leaderboard-podium [sessionId]="sessionIdSignal"></app-leaderboard-podium>
+      </div>
+    </div>
+  </div>
+</div> 

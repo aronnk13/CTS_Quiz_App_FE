@@ -1,0 +1,47 @@
+<div class="word-cloud-container">
+  <div class="word-cloud-header">
+    <h2>📊 Survey Word Cloud</h2>
+    <p class="subtitle">Text responses visualization</p>
+  </div>
+
+  <div class="stats-bar" *ngIf="wordCloudData()">
+    <div class="stat">
+      <span class="stat-value">{{ wordCloudData()?.totalResponses || 0 }}</span>
+      <span class="stat-label">Responses</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ wordCloudData()?.uniqueWords || 0 }}</span>
+      <span class="stat-label">Unique Words</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ generatedTime }}</span>
+      <span class="stat-label">Generated</span>
+    </div>
+  </div>
+
+  <div class="canvas-container">
+    <canvas #wordCloudCanvas></canvas>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn btn-primary" (click)="refreshWordCloud()">
+      🔄 Refresh
+    </button>
+    <button class="btn btn-success" (click)="exportAsPNG()">
+      📥 Export PNG
+    </button>
+    <button class="btn btn-info" (click)="exportAsJSON()">
+      📄 Export JSON
+    </button>
+  </div>
+
+  <div class="word-list" *ngIf="wordCloudData()">
+    <h3>Top Words</h3>
+    <div class="word-items">
+      <div class="word-item" *ngFor="let word of getTopWords(20)">
+        <span class="word-text">{{ word.word }}</span>
+        <span class="word-count">{{ word.frequency }}</span>
+      </div>
+    </div>
+  </div>
+</div>

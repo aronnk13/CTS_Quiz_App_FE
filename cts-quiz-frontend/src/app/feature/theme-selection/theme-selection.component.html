@@ -1,0 +1,37 @@
+
+<div class="topbar">
+  <h3>Select Theme</h3>
+  <div class="topbar-actions">
+    <button class="btn" (click)="goHome()">Home</button>
+    <input 
+      type="text" 
+      class="search-input"
+      [(ngModel)]="searchQuery"
+      placeholder="Search themes..."
+      (ngModelChange)="searchQuery.set($event)" />
+    <button class="btn" (click)="goCustomize()">Customize</button>
+  </div>
+</div>
+
+<div class="content">
+  <div *ngIf="loading()" class="loading">Loading themes...</div>
+
+  <div *ngIf="!loading()">
+    <div *ngFor="let group of themesByCategory()" class="category-section">
+      <h3 class="category-title">{{ group.category }}</h3>
+      <div class="grid">
+        <app-theme-card
+          *ngFor="let t of group.themes"
+          [theme]="t"
+          (select)="applyTheme($event)"
+          (edit)="editTheme($event)"
+          (delete)="deleteTheme($event)">
+        </app-theme-card>
+      </div>
+    </div>
+  </div>
+
+  
+
+
+</div>

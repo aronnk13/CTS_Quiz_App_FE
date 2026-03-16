@@ -1,0 +1,293 @@
+<!-- Professional Header -->
+<div class="survey-header  text-white py-4 mb-4">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="mb-1 fw-bold">📋 Create New Survey</h2>
+        <p class="mb-0 text-white-50">Host: <span class="fw-semibold text-white">{{ hostName }}</span></p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="text-white-50 small">
+          <i class="fas fa-calendar me-2"></i>{{ currentDateTime }}
+        </div>
+        <div class="text-white small">
+          <i class="fas fa-clock me-2"></i>Session Active
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="container-fluid px-lg-5 pb-5">
+    <div class="row mt-4 g-4" *ngIf="!isPreviewMode">
+      <div class="col-lg-8 col-md-12" [formGroup]="surveyForm">
+        <div class="card builder-card border-top-purple mb-4 survey-title-card">
+          <div class="card-body p-4">
+            <h6 class="text-muted fw-bold mb-3">📝 Survey Information</h6>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <input type="text" formControlName="title" class="form-control cts-input" placeholder="Survey Title *">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div formArrayName="questions">
+          <div *ngFor="let q of questions.controls; let i = index" [formGroupName]="i" class="card builder-card border-top-blue mb-4 shadow-sm">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between mb-3">
+                <span class="q-label">❓ Question {{ i + 1 }}</span>
+                <button type="button" class="btn btn-warning btn-sm text-white fw-bold">Suggestions</button>
+              </div>
+
+
+              <textarea formControlName="text" class="form-control cts-textarea mb-3" rows="2" placeholder="What is your question?"></textarea>
+              <div *ngIf="q.get('text')?.invalid && (q.get('text')?.dirty || q.get('text')?.touched)" class="text-danger small mb-2">
+                Question text is required.
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <select formControlName="type" class="form-select cts-input" (change)="onQuestionTypeChange(i)">
+                    <option value="single_choice">Single Choice</option>
+                    <option value="multiple_choice">Multiple Choice</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="rating">Rating (1-5 Stars)</option>
+                    <option value="text">Short Text</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Options for Single Choice, Multiple Choice, and Ranking -->
+              <div *ngIf="q.get('type')?.value === 'single_choice' || q.get('type')?.value === 'multiple_choice' || q.get('type')?.value === 'ranking'" formArrayName="options">
+                <div *ngFor="let opt of getOptions(i).controls; let oi = index" class="input-group mb-2">
+                  <span class="input-group-text bg-white"><i class="bi bi-circle"></i></span>
+                  <input [formControlName]="oi" class="form-control" placeholder="Option {{ oi + 1 }}">
+                  <button class="btn btn-outline-danger" (click)="removeOption(i, oi)" *ngIf="getOptions(i).length > 2">×</button>
+                </div>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none" (click)="addOption(i)">+ Add Option</button>
+              </div>
+
+              <!-- Rating Scale Configuration -->
+              <div *ngIf="q.get('type')?.value === 'rating'" class="border rounded p-3 bg-light mb-3">
+                <h6 class="text-muted mb-3"><i class="fas fa-star text-warning"></i> Rating Scale</h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label small">Minimum Value</label>
+                    <input type="number" formControlName="scaleMin" class="form-control" min="0" max="10" placeholder="e.g., 1">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small">Maximum Value</label>
+                    <input type="number" formControlName="scaleMax" class="form-control" min="1" max="10" placeholder="e.g., 5">
+                  </div>
+                </div>
+                <div class="text-muted small mt-2">
+                  <i class="fas fa-info-circle"></i> Participants will rate from {{ q.get('scaleMin')?.value || 1 }} to {{ q.get('scaleMax')?.value || 5 }}
+                </div>
+              </div>
+
+              <!-- Short Text Info -->
+              <div *ngIf="q.get('type')?.value === 'text'" class="alert alert-info small mb-3">
+                <i class="fas fa-info-circle"></i> Participants will provide a short text response (no additional configuration needed)
+              </div>
+
+              <button type="button" class="btn btn-danger btn-sm mt-3" (click)="removeQuestion(i)" *ngIf="questions.length > 1">
+                <i class="fas fa-trash-alt"></i> Remove Question
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Question Button -->
+        <div class="text-center mt-4">
+          <button type="button" class="btn btn-primary btn-lg w-50" (click)="addQuestion()">
+            <i class="fas fa-plus-circle"></i> Add Question
+          </button>
+        </div>
+      </div>
+
+      <!-- Survey Preview Card -->
+      <div class="col-lg-4 col-md-12">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0 text-white"><span class="me-2">👁️</span>Survey Preview ({{ questions.length }} questions)</h5>
+          </div>
+          <div class="card-body">
+            @if (questions.length === 0) {
+            <div class="text-center py-5">
+              <div class="display-1 mb-3">📋</div>
+              <p class="text-muted">No questions added yet. Create your first survey question above.</p>
+            </div>
+            } @else {
+            <div class="list-group mb-3">
+              @for (q of questions.controls; let i = $index; track i) {
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge bg-success rounded-pill">Q{{ i + 1 }}</span>
+                  <button class="btn btn-outline-danger btn-sm" type="button" (click)="removeQuestion(i)"
+                    title="Delete">🗑️</button>
+                </div>
+                <div class="fw-semibold mb-2">{{ q.get('text')?.value || 'No question text' }}</div>
+                @if (q.get('type')?.value === 'single_choice' || q.get('type')?.value === 'multiple_choice') {
+                <div class="d-flex flex-column gap-1">
+                  @for (opt of getOptions(i).controls; track $index) {
+                  <div class="badge bg-light text-dark">
+                    {{ opt.value || 'Option ' + ($index + 1) }}
+                  </div>
+                  }
+                </div>
+                }
+                @if (q.get('type')?.value === 'ranking') {
+                <div class="d-flex flex-column gap-1">
+                  <div class="text-muted small mb-1"><i class="fas fa-sort"></i> Ranking Options:</div>
+                  @if (getOptions(i).controls.length > 0) {
+                  @for (opt of getOptions(i).controls; track $index) {
+                  <div class="badge bg-light text-dark">
+                    {{ $index + 1 }}. {{ opt.value || 'Option ' + ($index + 1) }}
+                  </div>
+                  }
+                  } @else {
+                  <div class="text-muted small">No options added yet</div>
+                  }
+                </div>
+                }
+                @if (q.get('type')?.value === 'rating') {
+                <div class="text-muted small">
+                  <i class="fas fa-star text-warning"></i> Rating Scale: {{ q.get('scaleMin')?.value || 1 }} to {{ q.get('scaleMax')?.value || 5 }}
+                </div>
+                }
+                @if (q.get('type')?.value === 'text') {
+                <div class="text-muted small">
+                  <i class="fas fa-keyboard"></i> Short text response
+                </div>
+                }
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                  <span class="badge bg-info">{{ getQuestionTypeLabel(q.get('type')?.value) }}</span>
+                  @if (q.get('isRequired')?.value) {
+                  <span class="badge bg-danger">Required</span>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+            <button type="button" class="btn btn-success w-100 fw-bold" (click)="onPublish()" [disabled]="loading || questions.length === 0 || surveyForm.invalid">
+              {{ loading ? '⏳ Creating...' : '🚀 Create Survey' }}
+            </button>
+            @if (questions.length === 0) {
+            <div class="text-muted text-center mt-2 small">
+              Add at least one question to create survey.
+            </div>
+            }
+            }
+          </div>
+        </div>
+        
+        <!-- QR Code Section -->
+        <div class="survey-qr-card card shadow-sm mt-4" *ngIf="showQrCode">
+          <div class="card-body p-4 text-center">
+            <h6 class="fw-bold border-bottom pb-2 text-success">🎉 Survey Published Successfully!</h6>
+            <div class="qr-code-container mt-3 mb-3">
+              <qrcode [qrdata]="qrCodeValue" [width]="200" [errorCorrectionLevel]="'M'" [elementType]="'canvas'"></qrcode>
+            </div>
+            <div class="survey-url-section">
+              <label class="form-label small text-muted">Survey Participation URL:</label>
+              <div class="input-group input-group-sm mb-3">
+                <input type="text" class="form-control" [value]="surveyUrl" readonly>
+                <button class="btn btn-outline-secondary" (click)="copyToClipboard()" title="Copy URL">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary btn-sm" (click)="goBackToHost()">
+                <i class="fas fa-arrow-left me-1"></i> Back to Host Dashboard
+              </button>
+            </div>
+            <small class="text-muted d-block mt-2">
+              Share this QR code or URL with participants to join your survey
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-empty-state text-center py-5" *ngIf="isPreviewMode">
+      <div class="card border-0 shadow-sm mx-auto" style="max-width: 800px;">
+        <div class="card-header cts-dark-header text-white p-3 d-flex justify-content-between">
+          <span class="fw-bold">📋 My Surveys</span>
+          <button class="btn btn-sm btn-outline-light" (click)="isPreviewMode = false">+ Create New</button>
+        </div>
+        <div class="card-body py-5">
+          <div class="icon-circle mb-4">📄</div>
+          <h3 class="fw-bold">No questions found</h3>
+          <p class="text-muted">You haven't created any survey questions yet. Use the builder to start.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<!-- TUTORIAL OVERLAY -->
+@if (tutorialActive()) {
+<div class="tutorial-overlay">
+  <!-- Spotlight -->
+  @if (getSpotlightPosition(); as spotlightPos) {
+  <div class="tutorial-spotlight" 
+       [style.top]="spotlightPos.top"
+       [style.left]="spotlightPos.left"
+       [style.width]="spotlightPos.width"
+       [style.height]="spotlightPos.height">
+  </div>
+  }
+
+  <!-- Tutorial Popup -->
+  @if (getCurrentStep(); as step) {
+  <div class="tutorial-popup"
+       [style.top]="getPopupPosition()?.top || '50px'"
+       [style.left]="getPopupPosition()?.left || '50px'">
+    
+    <h4>{{ step.title }}</h4>
+    <p>{{ step.description }}</p>
+    
+    <div class="tutorial-controls">
+      @if (step.skipable) {
+      <button class="tutorial-skip" (click)="skipTutorial()">
+        Skip Tutorial
+      </button>
+      }
+      
+      <div class="tutorial-navigation">
+        @if (currentTutorialStep() > 0) {
+        <button class="tutorial-btn secondary" (click)="previousTutorialStep()">
+          Previous
+        </button>
+        }
+        
+        @if (currentTutorialStep() < tutorialSteps().length - 1) {
+        <button class="tutorial-btn" (click)="nextTutorialStep()">
+          Next
+        </button>
+        } @else {
+        <button class="tutorial-btn" (click)="skipTutorial()">
+          Finish
+        </button>
+        }
+      </div>
+    </div>
+    
+    <div class="tutorial-progress">
+      Step {{ currentTutorialStep() + 1 }} of {{ tutorialSteps().length }}
+      
+      <div class="tutorial-step-indicator">
+        @for (step of tutorialSteps(); track step.id; let i = $index) {
+        <div class="tutorial-step-dot" 
+             [class.active]="i === currentTutorialStep()"
+             [class.completed]="i < currentTutorialStep()">
+        </div>
+        }
+      </div>
+    </div>
+    
+  </div>
+  }
+</div>
+}

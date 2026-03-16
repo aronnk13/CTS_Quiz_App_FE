@@ -1,0 +1,218 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold">User Management</h1>
+    <button class="btn btn-primary" (click)="openAddForm()">
+      <i class="bi bi-plus-circle me-2"></i>Add User
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Filter by Role</label>
+          <select class="form-select" [(ngModel)]="selectedRoleFilter" (change)="onRoleFilterChange()">
+            <option value="All">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="Host">Host</option>
+            <option value="Participant">Participant</option>
+          </select>
+        </div>
+        <div class="col-md-9">
+          <p class="text-muted mt-4">
+            Showing <strong>{{ filteredUsers.length }}</strong> user(s)
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="border-0">User ID</th>
+              <th class="border-0">Email</th>
+              <th class="border-0">Name</th>
+              <th class="border-0">Status</th>
+              <th class="border-0">Role</th>
+              <th class="border-0 text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of filteredUsers">
+              <td>{{ user.employeeId }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.name }}</td>
+              <td>
+                <span class="badge" [ngClass]="user.isActive ? 'bg-success' : 'bg-danger'">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'bg-danger': user.role === 'Admin',
+                        'bg-warning': user.role === 'Host',
+                        'bg-info': user.role === 'Participant'
+                      }">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="viewUser(user.employeeId)" title="View">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-outline-success" (click)="openEditForm(user)" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="deleteUser(user.employeeId)" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredUsers.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">
+                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                No users found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit User Modal -->
+  <div class="modal fade" [class.show]="showForm" [style.display]="showForm ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">{{ isEditing ? 'Edit User' : 'Add User' }}</h5>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email *</label>
+            <input type="email" class="form-control" [(ngModel)]="newUser.email" placeholder="Enter email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">First Name *</label>
+            <input type="text" class="form-control" [(ngModel)]="newUser.firstName" placeholder="Enter first name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Last Name *</label>
+            <input type="text" class="form-control" [(ngModel)]="newUser.lastName" placeholder="Enter last name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Status</label>
+            <select class="form-select" [(ngModel)]="newUser.isActive">
+              <option [value]="true">Active</option>
+              <option [value]="false">Inactive</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Role</label>
+            <select class="form-select" [(ngModel)]="newUser.role">
+              <option value="Admin">Admin</option>
+              <option value="Host">Host</option>
+              <option value="Participant">Participant</option>
+            </select>
+            <small class="text-muted" *ngIf="!isEditing">Default: Participant</small>
+          </div>
+
+          <!-- Profile Photo Upload (Only for editing own profile) -->
+          <div class="mb-3" *ngIf="isEditing && newUser.employeeId === currentEmployeeId">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-camera me-2"></i>Profile Photo
+            </label>
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <!-- Current Photo Preview -->
+              <div class="position-relative">
+                <div *ngIf="profilePhotoPreview" class="rounded-circle overflow-hidden border border-2" style="width: 60px; height: 60px;">
+                  <img [src]="profilePhotoPreview" class="w-100 h-100" style="object-fit: cover;" alt="Preview"/>
+                </div>
+                <div *ngIf="!profilePhotoPreview" 
+                     class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold border border-2"
+                     style="width: 60px; height: 60px; font-size: 24px;">
+                  {{ newUser.firstName.charAt(0).toUpperCase() }}
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <input type="file" 
+                       class="form-control form-control-sm" 
+                       accept="image/*"
+                       (change)="onPhotoSelected($event)"
+                       #fileInput>
+                <small class="text-muted d-block mt-1">Upload your profile photo (JPG, PNG, max 2MB)</small>
+              </div>
+            </div>
+            <button type="button" 
+                    class="btn btn-sm btn-outline-danger" 
+                    *ngIf="profilePhotoPreview"
+                    (click)="removePhoto()">
+              <i class="bi bi-trash me-1"></i>Remove Photo
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveUser()">
+            <i class="bi bi-check-circle me-2"></i>Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showForm" *ngIf="showForm"></div>
+
+  <!-- User Details Modal -->
+  <div class="modal fade" [class.show]="showDetails" [style.display]="showDetails ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">User Details</h5>
+          <button type="button" class="btn-close" (click)="closeDetails()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedUser">
+          <div class="mb-3">
+            <label class="form-label text-muted small">User ID</label>
+            <p class="fw-semibold">{{ selectedUser.employeeId }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Email</label>
+            <p class="fw-semibold">{{ selectedUser.email }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Name</label>
+            <p class="fw-semibold">{{ selectedUser.name }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Role</label>
+            <p class="fw-semibold">
+              <span class="badge bg-primary">{{ selectedUser.role }}</span>
+            </p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Status</label>
+            <p>
+              <span class="badge" [ngClass]="selectedUser.isActive ? 'bg-success' : 'bg-danger'">
+                {{ selectedUser.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="closeDetails()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showDetails" *ngIf="showDetails"></div>
+
+</div>

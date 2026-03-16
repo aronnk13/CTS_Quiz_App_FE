@@ -1,0 +1,164 @@
+<!-- <div class="topbar">
+  <h3>Customize Theme</h3>
+  <button class="btn-light" (click)="back()">Back</button>
+</div>
+
+<div class="content">
+  <div class="panel">
+    <label>Theme Name</label>
+    <input [(ngModel)]="model.name" placeholder="e.g., Ocean Night" />
+
+    <label>Background Type</label>
+    <select [(ngModel)]="model.backgroundType">
+      <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+    </select>
+
+    <label>Background Value</label>
+    <input
+      [(ngModel)]="model.backgroundValue"
+      placeholder="solid: #111 | gradient: linear-gradient(...) | image: https://..."
+    />
+
+    
+
+    <label>Text Color</label>
+    <input type="color" [(ngModel)]="model.textColor" />
+
+    <label>Accent Color</label>
+    <input type="color" [(ngModel)]="model.accentColor" />
+
+    <button class="btn" (click)="save()">Save Theme</button>
+  </div>
+
+  <div class="preview"
+       [style.color]="model.textColor"
+       [style.background]="model.backgroundType === 'image' ? 'transparent' : model.backgroundValue"
+       [style.backgroundImage]="model.backgroundType === 'image' ? 'url(' + model.backgroundValue + ')' : 'none'">
+    Preview Text
+  </div>
+</div> -->
+
+<div class="topbar">
+  <h3>Customize Theme</h3>
+  <button class="btn-light" (click)="back()">Back</button>
+</div>
+
+<div class="content">
+  <div class="panel">
+    <h4 style="margin: 0 0 12px; color: #333;">Basic Information</h4>
+    
+    <label>Theme Name</label>
+    <input [(ngModel)]="model.name" placeholder="e.g., Ocean Night" />
+
+    <label>Category</label>
+    <select [(ngModel)]="model.category">
+      <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat }}</option>
+    </select>
+
+    <label>Animation Style</label>
+    <select [(ngModel)]="model.animation">
+      <option *ngFor="let anim of animations" [ngValue]="anim">{{ anim }}</option>
+    </select>
+
+    <label>Font Style</label>
+    <select [(ngModel)]="model.fontStyle" (ngModelChange)="onFontStyleChange()">
+      <option *ngFor="let font of fonts" [ngValue]="font">{{ font }}</option>
+    </select>
+
+    <!-- ✅ Only ONE Background Type
+    <h4 style="margin: 16px 0 8px; color: #333;">Background Settings</h4> -->
+    
+    <label>Background Type</label>
+    <select [(ngModel)]="model.backgroundType" (ngModelChange)="onBackgroundTypeChange()">
+      <option *ngFor="let t of types" [ngValue]="t">{{ t }}</option>
+    </select>
+
+    <!-- ===================== SOLID ===================== -->
+    <div *ngIf="model.backgroundType === 'solid'" class="section">
+      <label>Solid Color</label>
+      <input type="color"
+             [(ngModel)]="model.solidColor"
+             (ngModelChange)="onBackgroundControlChange()" />
+    </div>
+
+    <!-- ===================== GRADIENT ===================== -->
+    <div *ngIf="model.backgroundType === 'gradient'" class="section">
+      <div class="row">
+        <div class="col">
+          <label>Gradient Color 1</label>
+          <input type="color"
+                 [(ngModel)]="model.gradientColor1"
+                 (ngModelChange)="onBackgroundControlChange()" />
+        </div>
+
+        <div class="col">
+          <label>Gradient Color 2</label>
+          <input type="color"
+                 [(ngModel)]="model.gradientColor2"
+                 (ngModelChange)="onBackgroundControlChange()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== IMAGE ===================== -->
+    <div *ngIf="model.backgroundType === 'image'" class="section">
+      <label>Image Source</label>
+      
+      <!-- Upload from PC -->
+      <div class="upload-section">
+        <button type="button" class="btn-upload" (click)="fileInput.click()">
+          📁 Upload from PC
+        </button>
+        <input #fileInput
+               type="file"
+               accept="image/*"
+               (change)="onImageFileSelected($event)"
+               style="display: none;" />
+      </div>
+
+      <!-- Preview uploaded image -->
+      <div *ngIf="uploadedImagePreview" class="image-preview">
+        <img [src]="uploadedImagePreview" alt="Uploaded image preview" />
+        <button type="button" class="btn-remove" (click)="removeUploadedImage()">
+          ✕
+        </button>
+      </div>
+
+      <!-- OR divider -->
+      <div class="divider-or">
+        <span>OR</span>
+      </div>
+      
+      <!-- Image URL -->
+      <label>Image URL</label>
+      <input [(ngModel)]="model.imageUrl"
+             (ngModelChange)="onImageUrlChange()"
+             placeholder="https://example.com/image.jpg"
+             [disabled]="!!uploadedImageFile" />
+      <small class="hint">Tip: Use a direct image link (.jpg/.png/.webp)</small>
+    </div>
+
+    <!-- ===================== COMMON COLORS ===================== -->
+    <div class="section">
+      <h4 style="margin: 16px 0 8px; color: #333;">Theme Colors</h4>
+      
+      <label>Text Color</label>
+      <input type="color" [(ngModel)]="model.textColor" />
+
+      <label>Accent Color</label>
+      <input type="color" [(ngModel)]="model.accentColor" />
+    </div>
+
+    <button class="btn" (click)="save()">{{ isEditMode ? 'Update Theme' : 'Save Theme' }}</button>
+  </div>
+
+  <!-- ✅ Live Preview -->
+  <div class="preview" [ngStyle]="previewStyle()">
+    <h4 style="margin:0 0 8px;">Preview</h4>
+    <p style="margin:0;">Preview Text • Buttons • Cards</p>
+
+    <div class="fake-card">
+      <div class="fake-btn" [style.background]="model.accentColor">Accent Button</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<!-- <p>theme-card works!</p>
+
+<div class="card" (click)="onSelect()">
+  <div class="preview" [ngStyle]="previewStyle()">
+    <div class="name">{{ theme().name }}</div>
+    
+  </div>
+</div> -->
+<div class="card hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer" (click)="onSelect()">
+  <div class="preview" [ngStyle]="previewStyle()"></div>
+
+  <div class="info">
+    <div class="name">
+      {{ theme.name }}
+    </div>
+    <div class="actions" *ngIf="canModify()">
+      <button class="edit-btn hover:scale-110 transition-transform duration-200" 
+              (click)="onEdit($event)"
+              title="Edit theme">
+        ✎
+      </button>
+      <button class="delete-btn hover:scale-110 transition-transform duration-200" 
+              (click)="onDelete($event)"
+              title="Delete theme">
+        🗑️
+      </button>
+    </div>
+  </div>
+</div>

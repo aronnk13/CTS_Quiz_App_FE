@@ -1,0 +1,687 @@
+<!-- ADD QUESTION COMPONENT - MODERN PROFESSIONAL DESIGN -->
+<div class="add-question-container">
+  
+  <!-- Hero Header -->
+  <header class="quiz-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1 class="page-title">Create Quiz</h1>
+          <p class="page-subtitle">Host: <span class="host-name">{{ hostName }}</span></p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-info-card">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>{{ currentDateTime }}</span>
+        </div>
+        <div class="header-status-badge">
+          <span class="status-dot"></span>
+          <span>Session Active</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-decoration">
+      <div class="decoration-circle circle-1"></div>
+      <div class="decoration-circle circle-2"></div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="content-grid">
+
+      <!-- LEFT COLUMN - Main Forms -->
+      <div class="left-column">
+
+        <!-- Quiz Information Card -->
+        <section class="modern-card quiz-info-card">
+          <div class="card-header-modern">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <h2 class="card-title">Quiz Information</h2>
+            </div>
+            <div class="card-header-actions">
+              <button type="button" class="action-btn btn-template" (click)="openTemplate()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span>Template</span>
+              </button>
+              <button type="button" class="action-btn btn-tutorial" (click)="startTutorial()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Tutorial</span>
+              </button>
+            </div>
+          </div>
+          <div class="card-body-modern">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                  </svg>
+                  Quiz Name *
+                </label>
+                <input type="text" class="modern-input" [formControl]="form.controls.quizName"
+                  placeholder="e.g., Angular Fundamentals, React Basics" />
+                @if (form.controls.quizName.invalid && form.controls.quizName.touched) {
+                <div class="error-message">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  Quiz name is required
+                </div>
+                }
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Category
+                </label>
+                @if (!showCategoryInput()) {
+                <select class="modern-select" (change)="onCategoryChange($event)">
+                  <option value="">Select Category</option>
+                  @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+                } @else {
+                <input type="text" class="modern-input" [formControl]="form.controls.category"
+                  placeholder="Enter custom category" />
+                }
+              </div>
+            </div>
+            @if (questions().length > 0) {
+            <div class="quiz-progress-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              {{ questions().length }} question{{ questions().length > 1 ? 's' : '' }} added to "{{ form.controls.quizName.value || 'this quiz' }}"
+            </div>
+            }
+          </div>
+        </section>
+
+        <!-- Add Question Card -->
+        <section class="modern-card add-question-card">
+          <div class="card-header-modern">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+              </div>
+              <h2 class="card-title">Add New Question</h2>
+            </div>
+            <div class="card-header-actions">
+              <button type="button" class="action-btn btn-sample" (click)="downloadSampleCSV()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+                <span>Sample CSV</span>
+              </button>
+              <button type="button" class="action-btn btn-suggestion" (click)="toggleSuggestion()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <span>Suggestions</span>
+              </button>
+            </div>
+          </div>
+          <div class="card-body-modern">
+            <form [formGroup]="form">
+
+              <!-- Question Text -->
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  Question *
+                </label>
+                <textarea class="modern-textarea" [formControl]="form.controls.question"
+                  placeholder="Enter your question here... (e.g., What is the capital of France?)" rows="3"></textarea>
+                <div class="char-count">{{ form.controls.question.value.length || 0 }}/1000 characters</div>
+                @if (form.controls.question.invalid && form.controls.question.touched) {
+                <div class="error-message">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  Question is required (min 10 chars)
+                </div>
+                }
+              </div>
+
+              <!-- Question Type & Difficulty -->
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                    </svg>
+                    Question Type
+                  </label>
+                  <select class="modern-select" [formControl]="form.controls.type">
+                    @for (t of questionTypes; track t) {
+                    <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="8" y1="6" x2="21" y2="6"></line>
+                      <line x1="8" y1="12" x2="21" y2="12"></line>
+                      <line x1="8" y1="18" x2="21" y2="18"></line>
+                      <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                      <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                      <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    Difficulty
+                  </label>
+                  <select class="modern-select" [formControl]="form.controls.difficulty">
+                    @for (d of difficulties; track d) {
+                    <option [value]="d">{{ d }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- Timer Input -->
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  Time Limit (seconds)
+                </label>
+                <input type="number" class="modern-input" [formControl]="form.controls.timerSeconds"
+                  placeholder="Enter time limit in seconds (e.g., 30)" min="5" max="300" />
+                <div class="help-text">Time allowed for this question (5-300 seconds, default: 30)</div>
+                @if (form.controls.timerSeconds.invalid && form.controls.timerSeconds.touched) {
+                <div class="error-message">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  Timer must be between 5 and 300 seconds
+                </div>
+                }
+              </div>
+
+              <!-- Options -->
+              @if (form.controls.type.value !== 'Short Answer') {
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                  </svg>
+                  Answer Options *
+                </label>
+                <div class="options-container">
+                  @for (opt of options.controls; let i = $index; track i) {
+                  <div class="option-row" [formGroup]="opt">
+                    <label class="checkbox-wrapper">
+                      <input type="checkbox" class="modern-checkbox" formControlName="correct">
+                      <span class="checkbox-custom"></span>
+                    </label>
+                    <input class="option-input" type="text" formControlName="text" 
+                      placeholder="Enter option text"
+                      [readonly]="form.controls.type.value === 'True/False'" 
+                      (focus)="clearPlaceholderText($event, i)" />
+                    @if (options.length > 2 && form.controls.type.value !== 'True/False') {
+                    <button type="button" class="option-delete-btn" (click)="removeOption(i)" title="Remove option">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                    }
+                  </div>
+                  }
+                  @if (form.controls.type.value !== 'True/False') {
+                  <button type="button" class="add-option-btn" (click)="addOption()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add Another Option</span>
+                  </button>
+                  }
+                  @if (!hasAtLeastOneCorrect()) {
+                  <div class="error-message">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Mark at least one option as correct
+                  </div>
+                  }
+                </div>
+              </div>
+              }
+
+              <!-- Tags -->
+              <div class="form-group">
+                <label class="form-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                  Tags
+                </label>
+                <div class="tags-display">
+                  @for (tagCtrl of tags.controls; let i = $index; track i) {
+                  <span class="tag-badge">
+                    {{ tagCtrl.value }}
+                    <button type="button" class="tag-remove" (click)="removeTag(i)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </span>
+                  }
+                </div>
+                <div class="tag-input-group">
+                  <input #tagInput type="text" class="modern-input" placeholder="Add tag..." />
+                  <button type="button" class="tag-add-btn" (click)="addTag(tagInput)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="button" class="submit-question-btn" (click)="onSubmit()" [disabled]="disableAdd()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Add Question</span>
+              </button>
+
+            </form>
+
+            <!-- Suggestions Panel -->
+            @if (suggestionsOpen()) {
+            <div class="suggestions-panel">
+              <div class="suggestions-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <p>AI-powered suggestions will appear here</p>
+              </div>
+            </div>
+            }
+          </div>
+        </section>
+
+        <!-- Preview Card -->
+        <section class="modern-card preview-card">
+          <div class="card-header-modern">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <h2 class="card-title">Questions Preview</h2>
+            </div>
+            <div class="questions-count-badge">{{ questions().length }}</div>
+          </div>
+          <div class="card-body-modern">
+            @if (questions().length === 0) {
+            <div class="empty-state">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <h3>No questions yet</h3>
+              <p>Create your first question above to get started</p>
+            </div>
+            } @else {
+            <div class="questions-list">
+              @for (q of questions(); let i = $index; track q.text) {
+              <div class="question-preview-item">
+                <div class="question-preview-header">
+                  <span class="question-number">Q{{ i + 1 }}</span>
+                  <div class="question-actions">
+                    <button class="action-icon-btn edit-btn" type="button" title="Edit">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button class="action-icon-btn delete-btn" type="button" (click)="deleteQuestion(i)" title="Delete">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="question-text">{{ q.text }}</div>
+                @if (q.options.length) {
+                <div class="options-preview">
+                  @for (opt of q.options; track opt.text) {
+                  <div class="option-preview-item" [class.correct-option]="opt.isCorrect">
+                    @if (opt.isCorrect) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    }
+                    <span>{{ opt.text }}</span>
+                  </div>
+                  }
+                </div>
+                }
+                <div class="question-meta-tags">
+                  <span class="meta-badge type-badge">{{ q.type }}</span>
+                  <span class="meta-badge difficulty-badge difficulty-{{ q.difficulty.toLowerCase() }}">{{ q.difficulty }}</span>
+                  <span class="meta-badge category-badge">{{ q.category }}</span>
+                  @if (q.timerSeconds) {
+                  <span class="meta-badge timer-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    {{ q.timerSeconds }}s
+                  </span>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+            <button type="button" class="publish-quiz-btn" (click)="publishFromPreview()" [disabled]="!canPublish()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+              <span>Create Quiz</span>
+            </button>
+            @if (!canPublish()) {
+            <div class="publish-info-text">
+              Add quiz basics and at least one question to enable publish
+            </div>
+            }
+            }
+          </div>
+        </section>
+
+        <!-- QR Code Component -->
+        @if (isQuizCreated()) {
+        <app-qrcode [quizNumber]="createdQuizNumber()" [quizId]="createdQuizId()" [showActions]="true"
+          (newQuizClick)="startNewQuiz()">
+        </app-qrcode>
+        }
+
+      </div>
+
+      <!-- RIGHT COLUMN - Sidebar -->
+      <div class="right-column">
+
+        <!-- Quiz Summary Card -->
+        <section class="modern-card summary-card">
+          <div class="card-header-modern">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+              </div>
+              <h2 class="card-title">Quiz Summary</h2>
+            </div>
+          </div>
+          <div class="card-body-modern">
+            <div class="summary-items">
+              <div class="summary-item">
+                <div class="summary-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span>Questions</span>
+                </div>
+                <span class="summary-value">{{ questions().length }}</span>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                  </svg>
+                  <span>Quiz Name</span>
+                </div>
+                <span class="summary-value">{{ form.controls.quizName.value || 'Untitled' }}</span>
+              </div>
+              @if (quizMeta(); as meta) {
+              <div class="summary-item">
+                <div class="summary-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                  </svg>
+                  <span>Quiz Number</span>
+                </div>
+                <span class="summary-value">{{ meta.quizNumber }}</span>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Category</span>
+                </div>
+                <span class="summary-value">{{ meta.category }}</span>
+              </div>
+              } @else {
+              <div class="summary-info-message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>Enter quiz basics to generate Quiz Number</span>
+              </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- CSV Import/Export Card -->
+        <section class="modern-card csv-card">
+          <div class="card-header-modern">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                  <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+              </div>
+              <h2 class="card-title">CSV Import/Export</h2>
+            </div>
+          </div>
+          <div class="card-body-modern csv-body">
+            <div class="csv-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <h3 class="csv-title">Create Quiz Faster</h3>
+            <p class="csv-description">Import multiple questions instantly from a CSV file</p>
+            <div class="csv-actions">
+              <button type="button" class="csv-btn view-format-btn" (click)="downloadSampleCSV()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>View Format</span>
+              </button>
+              <button type="button" class="csv-btn upload-btn" (click)="csvFileInput.click()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload CSV</span>
+              </button>
+              @if (questions().length > 0) {
+              <button type="button" class="csv-btn export-btn" (click)="exportToCSV()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export Questions</span>
+              </button>
+              }
+            </div>
+            <input type="file" accept=".csv" (change)="onCSVFileSelected($event)" #csvFileInput style="display: none;">
+            @if (csvStatus()) {
+            <div class="csv-status">{{ csvStatus() }}</div>
+            }
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TUTORIAL OVERLAY -->
+  @if (tutorialActive()) {
+  <div class="tutorial-overlay">
+    @if (getSpotlightPosition(); as spotlightPos) {
+    <div class="tutorial-spotlight" 
+        [style.top]="spotlightPos.top"
+        [style.left]="spotlightPos.left"
+        [style.width]="spotlightPos.width"
+        [style.height]="spotlightPos.height">
+    </div>
+    }
+
+    @if (getCurrentStep(); as step) {
+    <div class="tutorial-popup"
+        [style.top]="getPopupPosition()?.top || '50px'"
+        [style.left]="getPopupPosition()?.left || '50px'">
+      
+      <h4>{{ step.title }}</h4>
+      <p>{{ step.description }}</p>
+      
+      <div class="tutorial-controls">
+        @if (step.skipable) {
+        <button class="tutorial-skip" (click)="skipTutorial()">
+          Skip Tutorial
+        </button>
+        }
+        
+        <div class="tutorial-navigation">
+          @if (currentTutorialStep() > 0) {
+          <button class="tutorial-btn secondary" (click)="previousTutorialStep()">
+            Previous
+          </button>
+          }
+          
+          @if (currentTutorialStep() < tutorialSteps().length - 1) {
+          <button class="tutorial-btn" (click)="nextTutorialStep()">
+            Next
+          </button>
+          } @else {
+          <button class="tutorial-btn" (click)="skipTutorial()">
+            Finish
+          </button>
+          }
+        </div>
+      </div>
+      
+      <div class="tutorial-progress">
+        Step {{ currentTutorialStep() + 1 }} of {{ tutorialSteps().length }}
+        
+        <div class="tutorial-step-indicator">
+          @for (step of tutorialSteps(); track step.id; let i = $index) {
+          <div class="tutorial-step-dot" 
+              [class.active]="i === currentTutorialStep()"
+              [class.completed]="i < currentTutorialStep()">
+          </div>
+          }
+        </div>
+      </div>
+      
+    </div>
+    }
+  </div>
+  }
+
+</div>

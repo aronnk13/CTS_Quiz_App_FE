@@ -1,0 +1,590 @@
+<div class="preview-container">
+  
+  @if (showQuizList()) {
+    <!-- Modern Quiz List View -->
+    <div class="quiz-list-section">
+      <!-- Hero Header -->
+      <div class="hero-header">
+        <div class="hero-content">
+          <div class="hero-text">
+            <div class="hero-badge">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+              <span>Content Management</span>
+            </div>
+            <h1 class="hero-title">📚 My Quiz Library</h1>
+            <p class="hero-subtitle">Create, manage, and preview your interactive quizzes</p>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="stat-value">{{ hostQuizzes().length }}</div>
+                <div class="stat-label">Total Quizzes</div>
+              </div>
+              <div class="hero-stat">
+                <div class="stat-value">{{ currentHostName }}</div>
+                <div class="stat-label">Host ID</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button class="hero-btn primary" (click)="startNewQuiz()" type="button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create New Quiz
+            </button>
+          </div>
+        </div>
+        <div class="hero-decoration">
+          <div class="decoration-circle circle-1"></div>
+          <div class="decoration-circle circle-2"></div>
+          <div class="decoration-circle circle-3"></div>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Search by quiz name, number, or category..."
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="searchQuery.set('')" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          }
+        </div>
+        @if (searchQuery()) {
+          <div class="search-results-count">
+            Found {{ filteredQuizzes().length }} quiz{{ filteredQuizzes().length !== 1 ? 'zes' : '' }}
+          </div>
+        }
+      </div>
+
+      @if (loadingQuizzes()) {
+        <div class="loading-state">
+          <app-loader 
+            type="cognizant" 
+            text="Loading your quizzes..." 
+            containerClass="inline">
+          </app-loader>
+        </div>
+      } @else if (filteredQuizzes().length === 0 && searchQuery()) {
+        <!-- No Search Results -->
+        <div class="empty-state-card">
+          <div class="empty-illustration">
+            <div class="illustration-circle">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </div>
+          </div>
+          <h3 class="empty-title">No Results Found</h3>
+          <p class="empty-description">No quizzes match "{{ searchQuery() }}". Try a different search term.</p>
+        </div>
+      } @else if (hostQuizzes().length === 0) {
+        <!-- Enhanced Empty State -->
+        <div class="empty-state-card">
+          <div class="empty-illustration">
+            <div class="illustration-circle">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+              </svg>
+            </div>
+          </div>
+          <h3 class="empty-title">No Quizzes Yet</h3>
+          <p class="empty-description">Start creating engaging quizzes for your audience. Click the button above to get started!</p>
+          <div class="empty-features">
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Multiple question types</span>
+            </div>
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Easy to edit & manage</span>
+            </div>
+            <div class="feature-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>QR code generation</span>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Modern Quiz Grid -->
+        <div class="quizzes-grid-modern">
+          @for (quiz of filteredQuizzes(); track quiz.quizId) {
+            <div class="quiz-card-modern">
+              <!-- Quiz Card Header -->
+              <div class="quiz-card-header-modern">
+                <div class="quiz-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                  </svg>
+                </div>
+                <div class="quiz-status-badge" 
+                     [class.status-draft]="quiz.status.toLowerCase() === 'draft'"
+                     [class.status-active]="quiz.status.toLowerCase() === 'active'"
+                     [class.status-completed]="quiz.status.toLowerCase() === 'completed'">
+                  {{ quiz.status }}
+                </div>
+              </div>
+
+              <!-- Quiz Card Body -->
+              <div class="quiz-card-body-modern">
+                <div class="quiz-number">{{ quiz.quizNumber }}</div>
+                <h3 class="quiz-title-modern">{{ quiz.quizName }}</h3>
+                
+                <div class="quiz-meta-tags">
+                  <span class="meta-tag category">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    {{ quiz.category }}
+                  </span>
+                  <span class="meta-tag questions">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    {{ quiz.questionCount }} Questions
+                  </span>
+                </div>
+
+                <div class="quiz-date">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  {{ quiz.createdAt | date:'MMM d, y' }}
+                </div>
+              </div>
+
+              <!-- Quiz Card Footer -->
+              <div class="quiz-card-footer-modern">
+                <button class="action-btn-modern primary" (click)="loadQuizForEditing(quiz.quizId)" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Edit Quiz
+                </button>
+                <button class="action-btn-modern secondary" (click)="toggleQR(quiz.quizId)" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                  {{ showQRForQuizId() === quiz.quizId ? 'Hide' : 'QR' }}
+                </button>
+                <button class="action-btn-modern danger" (click)="deleteQuizFromLibrary(quiz.quizId, quiz.quizName)" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                  </svg>
+                  Delete
+                </button>
+              </div>
+
+              <!-- QR Code Expansion -->
+              @if (showQRForQuizId() === quiz.quizId) {
+                <div class="qr-expansion">
+                  <app-qrcode 
+                    [quizNumber]="quiz.quizNumber" 
+                    [quizId]="quiz.quizId"
+                    [showActions]="false">
+                  </app-qrcode>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Modern Quiz Edit View -->
+    <div class="quiz-edit-container">
+      <!-- Sticky Header with Breadcrumb -->
+      <div class="edit-header-sticky">
+        <button class="back-button-modern" (click)="backToQuizList()" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12,19 5,12 12,5"></polyline>
+          </svg>
+          <span>Back to Library</span>
+        </button>
+        
+        <div class="breadcrumb-modern">
+          <span class="breadcrumb-item">My Quizzes</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span class="breadcrumb-item active">Edit & Preview</span>
+        </div>
+      </div>
+
+      <!-- Quiz Meta Card - Modern Design -->
+      <div class="meta-card-modern">
+        <div class="meta-card-header">
+          <div class="meta-header-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="meta-card-title">📝 Quiz Information</h2>
+            <p class="meta-card-subtitle">Overview of your quiz details</p>
+          </div>
+        </div>
+        
+        @if (quizMeta(); as meta) {
+          <div class="meta-grid-modern">
+            <div class="meta-item-modern">
+              <div class="meta-item-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                </svg>
+              </div>
+              <div class="meta-item-content">
+                <span class="meta-label">Quiz Name</span>
+                <span class="meta-value">{{ meta.quizName || 'Not set' }}</span>
+              </div>
+            </div>
+
+            <div class="meta-item-modern">
+              <div class="meta-item-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
+              <div class="meta-item-content">
+                <span class="meta-label">Quiz Number</span>
+                <span class="meta-value quiz-number">{{ meta.quizNumber || 'Not generated' }}</span>
+              </div>
+            </div>
+
+            <div class="meta-item-modern">
+              <div class="meta-item-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+              </div>
+              <div class="meta-item-content">
+                <span class="meta-label">Category</span>
+                <span class="meta-value">{{ meta.category || 'Not set' }}</span>
+              </div>
+            </div>
+
+            <div class="meta-item-modern">
+              <div class="meta-item-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </div>
+              <div class="meta-item-content">
+                <span class="meta-label">Total Questions</span>
+                <span class="meta-value count">{{ questions().length }}</span>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="no-meta-modern">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>No quiz information available. Please add quiz details in the Questions tab.</p>
+          </div>
+        }
+      </div>
+
+      <!-- Questions Section - Modern Design -->
+      <div class="questions-section-modern">
+        <div class="section-header-modern">
+          <div class="section-header-content">
+            <div class="section-icon-modern">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              </svg>
+            </div>
+            <div>
+              <h3 class="section-title-modern">Questions Library</h3>
+              <p class="section-subtitle-modern">{{ questions().length }} question(s) in this quiz</p>
+            </div>
+          </div>
+        </div>
+
+        @if (questions().length === 0) {
+          <div class="no-questions-modern">
+            <div class="no-questions-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <h4>No Questions Yet</h4>
+            <p>Add questions in the Questions tab to see them here for preview and editing.</p>
+          </div>
+        } @else {
+          <div class="questions-list-modern">
+            @for (question of questions(); let i = $index; track question.text) {
+              <div class="question-card-modern" [class.editing-active]="editingQuestionIndex() === i">
+                
+                @if (editingQuestionIndex() === i && editingQuestion(); as editQ) {
+                  <!-- Edit Mode - Enhanced Design -->
+                  <div class="edit-mode-modern">
+                    <div class="edit-header-modern">
+                      <div class="edit-title-section">
+                        <div class="edit-icon">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                        </div>
+                        <h4>Editing Question #{{ i + 1 }}</h4>
+                      </div>
+                      <div class="edit-actions-modern">
+                        <button class="save-btn-modern" (click)="saveQuestion()" type="button">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          Save Changes
+                        </button>
+                        <button class="cancel-btn-modern" (click)="cancelEdit()" type="button">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="edit-form-modern">
+                      <div class="form-group-modern full-width">
+                        <label class="form-label-modern">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          Question Text
+                        </label>
+                        <textarea [(ngModel)]="editQ.text" rows="3" class="form-control-modern" placeholder="Enter your question here..."></textarea>
+                      </div>
+                      
+                      <div class="form-row-modern">
+                        <div class="form-group-modern">
+                          <label class="form-label-modern">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            Question Type
+                          </label>
+                          <select [(ngModel)]="editQ.type" (ngModelChange)="onQuestionTypeChange()" class="form-select-modern">
+                            <option value="Multiple Choice">Multiple Choice</option>
+                            <option value="True/False">True/False</option>
+                            <option value="Short Answer">Short Answer</option>
+                          </select>
+                        </div>
+
+                        <div class="form-group-modern">
+                          <label class="form-label-modern">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
+                            Difficulty
+                          </label>
+                          <select [(ngModel)]="editQ.difficulty" class="form-select-modern">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                          </select>
+                        </div>
+
+                        <div class="form-group-modern">
+                          <label class="form-label-modern">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Timer (sec)
+                          </label>
+                          <input type="number" [(ngModel)]="editQ.timerSeconds" class="form-control-modern" min="0" placeholder="30">
+                        </div>
+                      </div>
+
+                      @if (editQ.type !== 'Short Answer') {
+                        <div class="options-section-modern">
+                          <div class="options-header-modern">
+                            <label class="form-label-modern">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                              </svg>
+                              Answer Options
+                            </label>
+                            <button class="add-option-btn-modern" (click)="addOption()" type="button" [disabled]="isTrueFalseQuestion()">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                              </svg>
+                              Add Option
+                            </button>
+                          </div>
+                          
+                          <div class="options-list-edit">
+                            @for (option of editQ.options; let optIdx = $index; track optIdx) {
+                              <div class="option-row-modern" [class.correct-option]="option.isCorrect">
+                                <div class="option-number">{{ optIdx + 1 }}</div>
+                                <input type="text" [(ngModel)]="option.text" class="option-input-modern" placeholder="Enter option text" [readonly]="isTrueFalseQuestion()">
+                                <label class="correct-checkbox-modern">
+                                  <input type="radio" [name]="'correct-' + i" [checked]="option.isCorrect" 
+                                         (change)="setCorrectOption(optIdx)">
+                                  <span class="checkbox-label">Correct</span>
+                                </label>
+                                @if (editQ.options.length > 1 && !isTrueFalseQuestion()) {
+                                  <button class="remove-option-btn-modern" (click)="removeOption(optIdx)" type="button">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </button>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <!-- View Mode - Enhanced Design -->
+                  <div class="view-mode-modern">
+                    <div class="question-header-modern">
+                      <div class="question-title-section">
+                        <div class="question-number-badge">Q{{ i + 1 }}</div>
+                        <h4 class="question-text-modern">{{ question.text }}</h4>
+                      </div>
+                      <div class="question-actions-modern">
+                        <button class="action-icon-btn edit" (click)="startEditQuestion(i)" type="button" title="Edit Question">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                        </button>
+                        <button class="action-icon-btn delete" (click)="deleteQuestion(i)" type="button" title="Delete Question">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="question-meta-modern">
+                      <span class="badge-modern type">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        {{ question.type }}
+                      </span>
+                      <span class="badge-modern difficulty" 
+                            [class.easy]="question.difficulty === 'Easy'"
+                            [class.medium]="question.difficulty === 'Medium'"
+                            [class.hard]="question.difficulty === 'Hard'">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                        {{ question.difficulty }}
+                      </span>
+                      <span class="badge-modern category">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        </svg>
+                        {{ question.category }}
+                      </span>
+                      @if (question.timerSeconds) {
+                        <span class="badge-modern timer">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          {{ question.timerSeconds }}s
+                        </span>
+                      }
+                    </div>
+                    
+                    @if (question.options.length > 0) {
+                      <div class="options-list-modern">
+                        <div class="options-list-header">Answer Options</div>
+                        @for (option of question.options; let optIdx = $index; track option.text) {
+                          <div class="option-item-modern" [class.correct-answer]="option.isCorrect">
+                            <div class="option-indicator">{{ String.fromCharCode(65 + optIdx) }}</div>
+                            <span class="option-text-modern">{{ option.text }}</span>
+                            @if (option.isCorrect) {
+                              <span class="correct-badge">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Correct
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
