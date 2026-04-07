@@ -39,6 +39,7 @@
     "file-saver": "^2.0.5",
     "framer-motion": "^12.34.0",
     "html-to-image": "^1.11.13",
+    "i": "^0.3.7",
     "jwt-decode": "^4.0.0",
     "ng2-charts": "^8.0.0",
     "pdfmake": "^0.2.23",

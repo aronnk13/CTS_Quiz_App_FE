@@ -8,6 +8,7 @@ import { of } from 'rxjs';
 import { temp } from '../models/temp';
 import { Question } from '../models/question';
 
+
 // Export Template alias for compatibility
 export type Template = temp;
 
@@ -22,6 +23,19 @@ export class TemplateService {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   });
+
+  generateWithAI(topic: string, questionCount: number, difficulty: string): Observable<any> {
+    // We construct the full URL using your environment variables
+    const url = `${environment.apiUrl}/Host/Quiz/generate-with-ai`;
+    
+    console.log('📤 Sending AI Generation Request to:', url);
+
+    return this.http.post<any>(
+      url,
+      { topic, questionCount, difficulty },
+      { headers: this.jsonHeaders } // You must include your JSON headers!
+    );
+  }
 
   getAllTemplates(): Observable<temp[]> {
     return this.http.get<temp[]>(this.apiUrl, { headers: this.jsonHeaders });
@@ -242,6 +256,9 @@ export class TemplateService {
       { status },
       { headers: this.jsonHeaders }
     );
+
+
+    
   }
 }
 
