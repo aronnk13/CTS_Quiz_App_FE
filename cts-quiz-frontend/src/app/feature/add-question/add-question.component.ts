@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, AfterViewInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -19,6 +19,8 @@ import { DashboardStatsService } from '../../services/dashboard-stats.service';
 import { QrcodeComponent } from '../qrcode/qrcode.component';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TutorialService, TutorialStep } from '../../services/tutorial.service';
+import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { TemplateService } from '../../services/template.service';
 
 type OptionForm = FormGroup<{
   text: FormControl<string>;
@@ -39,7 +41,7 @@ type AddQuestionForm = FormGroup<{
 @Component({
   selector: 'app-add-question',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, QrcodeComponent, MatSnackBarModule],
+  imports: [CommonModule, ReactiveFormsModule, QrcodeComponent, MatSnackBarModule, MatDialogModule],
   templateUrl: './add-question.component.html',
   styleUrls: ['./add-question.component.css'],
 })
@@ -50,6 +52,19 @@ export class AddQuestionComponent implements AfterViewInit {
   private dashboardStatsService = inject(DashboardStatsService);
   private router = inject(Router);
   private tutorialService = inject(TutorialService);
+
+  //blah blah
+  private dialog = inject(MatDialog);
+  private templateService = inject(TemplateService);
+
+  @ViewChild('aiDialog') aiDialog!: TemplateRef<any>;
+  private aiDialogRef!: MatDialogRef<any>;
+  aiLoading = false;
+  aiForm = this.fb.group({
+    topic: ['', Validators.required],
+    questionCount: [5, [Validators.required, Validators.min(1), Validators.max(25)]],
+    difficulty: ['Medium', Validators.required]
+  });
 
   onCategoryChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
@@ -75,7 +90,7 @@ export class AddQuestionComponent implements AfterViewInit {
 
   readonly questionTypes = ['Multiple Choice', 'True/False', 'Short Answer'] as const;
   readonly difficulties = ['Easy', 'Medium', 'Hard'] as const;
-  
+
   readonly categories = [
     'Java',
     'Database',
@@ -241,6 +256,112 @@ export class AddQuestionComponent implements AfterViewInit {
   toggleSuggestion(): void {
     this.suggestionsOpen.update((v) => !v);
   }
+
+  //blah blah blah blah blah 
+
+  openAIGenerateDialog() {
+    this.aiDialogRef = this.dialog.open(this.aiDialog, { width: '400px' });
+  }
+
+  closeAIDialog() {
+    if (this.aiDialogRef) {
+      this.aiDialogRef.close();
+    }
+  }
+
+  // submitAIGenerate() {
+  //   if (this.aiForm.invalid) return;
+
+  //   this.aiLoading = true;
+  //   const { topic, questionCount, difficulty } = this.aiForm.value;
+
+  //   // Fallbacks to satisfy TypeScript null checks
+  //   const safeTopic = topic ?? '';
+  //   const safeCount = questionCount ?? 5;
+  //   const safeDiff = difficulty ?? 'Medium';
+
+  //   this.templateService.generateWithAI(safeTopic, safeCount, safeDiff).subscribe({
+  //     next: (template: any) => {
+  //       // FIXED MAPPING: Maps C# TemplateQuestionDto to Angular QuizQuestion
+  //       const mappedQuestions: QuizQuestion[] = template.Questions.map((q: any) => ({
+  //         text: q.QuestionText,
+  //         type: q.QuestionType || 'Multiple Choice',
+  //         difficulty: this.aiForm.value.difficulty, // Grab from your AI form
+  //         category: this.aiForm.value.topic, // Fallback to topic, or add category to your AI form
+  //         tags: [], // Empty array to satisfy the interface
+  //         timerSeconds: q.TimerSeconds || 30,
+  //         options: q.Options ? q.Options.map((o: any) => ({
+  //           text: o.OptionText,
+  //           isCorrect: o.IsCorrect
+  //         })) : []
+  //       }));
+
+  //       // Push directly to your existing state store!
+  //       mappedQuestions.forEach(q => this.store.addQuestion(q));
+
+  //       this.snackBar.open(`✅ Successfully generated ${mappedQuestions.length} questions!`, 'Close', { duration: 3000 });
+  //       this.aiLoading = false;
+  //       this.closeAIDialog();
+  //     },
+  //     error: (err) => {
+  //       this.aiLoading = false;
+  //       this.snackBar.open(`❌ AI Generation Failed: ${err.message}`, 'Close', { duration: 5000 });
+  //     }
+  //   });
+  // }
+
+  submitAIGenerate() {
+    if (this.aiForm.invalid) return;
+    
+    this.aiLoading = true;
+    const { topic, questionCount, difficulty } = this.aiForm.value;
+    
+    const safeTopic = topic ?? '';
+    const safeCount = questionCount ?? 5;
+    const safeDiff = difficulty ?? 'Medium';
+
+    this.templateService.generateWithAI(safeTopic, safeCount, safeDiff).subscribe({
+      next: (template: any) => {
+        console.log("Raw AI Payload:", template); // Look at this in F12 to see the exact case!
+
+        // Safely extract the array, checking both camelCase and PascalCase
+        const rawQuestions = template.questions || template.Questions;
+        
+        if (!rawQuestions || !Array.isArray(rawQuestions)) {
+            console.error("Invalid template format:", template);
+            this.snackBar.open(`❌ Error: AI returned invalid data format.`, 'Close', { duration: 5000 });
+            this.aiLoading = false;
+            return;
+        }
+
+        // Robust mapping checking both cases
+        // Robust mapping checking both cases with explicit Type Casting
+        const mappedQuestions: QuizQuestion[] = rawQuestions.map((q: any) => ({
+          text: q.questionText || q.QuestionText || 'Missing Text',
+          type: (q.questionType || q.QuestionType || 'Multiple Choice') as QuestionType, // CAST THIS
+          difficulty: safeDiff as Difficulty, // CAST THIS
+          category: safeTopic,
+          tags: [], 
+          timerSeconds: q.timerSeconds || q.TimerSeconds || 30,
+          options: (q.options || q.Options || []).map((o: any) => ({
+            text: o.optionText || o.OptionText || 'Missing Option',
+            isCorrect: !!(o.isCorrect || o.IsCorrect)
+          }))
+        }));
+        // Push directly to your existing state store
+        mappedQuestions.forEach(q => this.store.addQuestion(q));
+        
+        this.snackBar.open(`✅ Successfully generated ${mappedQuestions.length} questions!`, 'Close', { duration: 3000 });
+        this.aiLoading = false;
+        // this.closeAIDialog();
+      },
+      error: (err) => {
+        this.aiLoading = false;
+        this.snackBar.open(`❌ AI Generation Failed: ${err.message}`, 'Close', { duration: 5000 });
+      }
+    });
+  }
+  // ---------------------------------
 
   openTemplate(): void {
     this.router.navigate(['/template']);
@@ -741,4 +862,6 @@ export class AddQuestionComponent implements AfterViewInit {
     this.store.clearAll();
     this.resetCompleteForm();
   }
+
+
 }
